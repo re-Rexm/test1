@@ -24,13 +24,23 @@
     const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('arCanvas'), alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Arrow helper (initially hidden)
-    const arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1, 0xff0000);
-    arrow.visible = false; // Hide arrow initially
-    scene.add(arrow);
+    // Add lighting to the scene
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1, 1, 1).normalize();
+    scene.add(light);
+
+    // Create two boxes (cubes) for events
+    const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const boxNorth = new THREE.Mesh(boxGeometry, boxMaterial);
+    const boxSouth = new THREE.Mesh(boxGeometry, boxMaterial);
+    boxNorth.position.set(0, 0, -5); // Place north box
+    boxSouth.position.set(0, 0, 5);  // Place south box
+    scene.add(boxNorth);
+    scene.add(boxSouth);
 
     // Camera position
-    camera.position.set(0, 0, 5);
+    camera.position.set(0, 0, 0);
 
     // Animation loop
     function animate() {
@@ -39,16 +49,13 @@
     }
     animate();
 
-    // Function to calculate the direction vector from user to event
-    function calculateDirection(userLat, userLon, eventLat, eventLon) {
-      const latDiff = eventLat - userLat;
-      const lonDiff = eventLon - userLon;
-      return new THREE.Vector3(lonDiff, 0, -latDiff).normalize(); // Invert latDiff for correct orientation
-    }
-
-    // Get camera feed
+    // Get back camera feed
     const video = document.getElementById('cameraFeed');
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: { exact: 'environment' } // Force back camera
+      } 
+    })
       .then((stream) => {
         video.srcObject = stream;
       })
@@ -63,20 +70,20 @@
 
       // Define two events: one 50m north and one 50m south of the user
       const meterToDegree = 0.000008983; // Approximate conversion from meters to degrees
-      const events = [
-        { name: "Event North", lat: userLat + 50 * meterToDegree, lon: userLon }, // 50m north
-        { name: "Event South", lat: userLat - 50 * meterToDegree, lon: userLon }, // 50m south
-      ];
+      const eventNorth = {
+        name: "Event North",
+        lat: userLat + 50 * meterToDegree, // 50m north
+        lon: userLon,
+      };
+      const eventSouth = {
+        name: "Event South",
+        lat: userLat - 50 * meterToDegree, // 50m south
+        lon: userLon,
+      };
 
-      // Function to handle event selection
-      function selectEvent(event) {
-        const direction = calculateDirection(userLat, userLon, event.lat, event.lon);
-        arrow.setDirection(direction);
-        arrow.visible = true; // Show arrow when an event is selected
-      }
-
-      // Simulate event selection (for demonstration)
-      setTimeout(() => selectEvent(events[0]), 3000); // Select "Event North" after 3 seconds
+      // Position the boxes based on event locations
+      boxNorth.position.set(0, 0, -5); // North event (z = -5)
+      boxSouth.position.set(0, 0, 5);  // South event (z = 5)
     }, (error) => {
       console.error("Error getting location:", error);
     });
