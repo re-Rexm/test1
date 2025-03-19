@@ -19,18 +19,19 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Dummy event data
-    const events = [
-      { name: "Event 1", lat: 37.7749, lon: -122.4194, distance: 10 }, // San Francisco
-      { name: "Event 2", lat: 34.0522, lon: -118.2437, distance: 20 }, // Los Angeles
-    ];
+    // Add a grid helper for better visualization
+    const gridHelper = new THREE.GridHelper(10, 10);
+    scene.add(gridHelper);
 
-    // Arrow helper
-    const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 5, 0xff0000);
-    scene.add(arrow);
+    // Arrow helpers for events
+    const arrowNorth = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1, 0xff0000);
+    const arrowSouth = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 0), 1, 0x00ff00);
+    scene.add(arrowNorth);
+    scene.add(arrowSouth);
 
     // Camera position
-    camera.position.z = 5;
+    camera.position.set(0, 5, 5);
+    camera.lookAt(0, 0, 0);
 
     // Animation loop
     function animate() {
@@ -39,15 +40,40 @@
     }
     animate();
 
+    // Function to calculate the direction vector from user to event
+    function calculateDirection(userLat, userLon, eventLat, eventLon) {
+      const latDiff = eventLat - userLat;
+      const lonDiff = eventLon - userLon;
+      return new THREE.Vector3(lonDiff, 0, -latDiff).normalize(); // Invert latDiff for correct orientation
+    }
+
     // Geolocation
     navigator.geolocation.getCurrentPosition((position) => {
       const userLat = position.coords.latitude;
       const userLon = position.coords.longitude;
 
-      // Calculate direction to the first event
-      const event = events[0];
-      const angle = Math.atan2(event.lat - userLat, event.lon - userLon);
-      arrow.setDirection(new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle)));
+      // Define two events: one 50m north and one 50m south of the user
+      const meterToDegree = 0.000008983; // Approximate conversion from meters to degrees
+      const eventNorth = {
+        name: "Event North",
+        lat: userLat + 50 * meterToDegree, // 50m north
+        lon: userLon,
+      };
+      const eventSouth = {
+        name: "Event South",
+        lat: userLat - 50 * meterToDegree, // 50m south
+        lon: userLon,
+      };
+
+      // Calculate directions to the events
+      const directionNorth = calculateDirection(userLat, userLon, eventNorth.lat, eventNorth.lon);
+      const directionSouth = calculateDirection(userLat, userLon, eventSouth.lat, eventSouth.lon);
+
+      // Update arrow directions
+      arrowNorth.setDirection(directionNorth);
+      arrowSouth.setDirection(directionSouth);
+    }, (error) => {
+      console.error("Error getting location:", error);
     });
   </script>
 </body>
