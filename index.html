@@ -14,7 +14,7 @@
       document.addEventListener('DOMContentLoaded', () => {
         const scene = document.querySelector('a-scene');
 
-        // Add two events (boxes) at specific GPS locations
+        // Add an event (box) at a specific GPS location
         const addEvent = (latitude, longitude, color, name) => {
           const entity = document.createElement('a-entity');
           entity.setAttribute('gps-new-entity-place', {
@@ -29,6 +29,8 @@
           });
           entity.setAttribute('material', { color: color });
           entity.setAttribute('look-at', '[gps-new-camera]');
+          entity.setAttribute('class', 'event'); // Add class for event selection
+          entity.setAttribute('clickable', ''); // Make the box clickable
 
           // Add text label
           const text = document.createElement('a-text');
@@ -38,6 +40,17 @@
           text.setAttribute('position', '0 6 0');
           text.setAttribute('look-at', '[gps-new-camera]');
           entity.appendChild(text);
+
+          // Add click event listener
+          entity.addEventListener('click', () => {
+            const arrow = document.querySelector('#arrow');
+            arrow.setAttribute('visible', 'true');
+            arrow.setAttribute('gps-new-entity-place', {
+              latitude: latitude,
+              longitude: longitude,
+            });
+            arrow.setAttribute('look-at', '[gps-new-camera]');
+          });
 
           scene.appendChild(entity);
         };
@@ -79,7 +92,7 @@
       <!-- Camera -->
       <a-camera gps-new-camera></a-camera>
 
-      <!-- Arrow Entity -->
+      <!-- Arrow Entity (initially hidden) -->
       <a-entity
         id="arrow"
         geometry="primitive: cone; radiusBottom: 0.5; height: 2"
