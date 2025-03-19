@@ -6,32 +6,31 @@
   <title>AR Event Finder</title>
   <style>
     body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
+    canvas { display: block; position: absolute; top: 0; left: 0; }
+    video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
+  <!-- Video element for camera feed -->
+  <video id="cameraFeed" autoplay playsinline></video>
+  <!-- Canvas for Three.js rendering -->
+  <canvas id="arCanvas"></canvas>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('arCanvas'), alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
 
-    // Add a grid helper for better visualization
-    const gridHelper = new THREE.GridHelper(10, 10);
-    scene.add(gridHelper);
-
-    // Arrow helpers for events
-    const arrowNorth = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1, 0xff0000);
-    const arrowSouth = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 0), 1, 0x00ff00);
-    scene.add(arrowNorth);
-    scene.add(arrowSouth);
+    // Arrow helper (initially hidden)
+    const arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1, 0xff0000);
+    arrow.visible = false; // Hide arrow initially
+    scene.add(arrow);
 
     // Camera position
-    camera.position.set(0, 5, 5);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 0, 5);
 
     // Animation loop
     function animate() {
@@ -47,6 +46,16 @@
       return new THREE.Vector3(lonDiff, 0, -latDiff).normalize(); // Invert latDiff for correct orientation
     }
 
+    // Get camera feed
+    const video = document.getElementById('cameraFeed');
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        video.srcObject = stream;
+      })
+      .catch((error) => {
+        console.error("Error accessing camera:", error);
+      });
+
     // Geolocation
     navigator.geolocation.getCurrentPosition((position) => {
       const userLat = position.coords.latitude;
@@ -54,24 +63,20 @@
 
       // Define two events: one 50m north and one 50m south of the user
       const meterToDegree = 0.000008983; // Approximate conversion from meters to degrees
-      const eventNorth = {
-        name: "Event North",
-        lat: userLat + 50 * meterToDegree, // 50m north
-        lon: userLon,
-      };
-      const eventSouth = {
-        name: "Event South",
-        lat: userLat - 50 * meterToDegree, // 50m south
-        lon: userLon,
-      };
+      const events = [
+        { name: "Event North", lat: userLat + 50 * meterToDegree, lon: userLon }, // 50m north
+        { name: "Event South", lat: userLat - 50 * meterToDegree, lon: userLon }, // 50m south
+      ];
 
-      // Calculate directions to the events
-      const directionNorth = calculateDirection(userLat, userLon, eventNorth.lat, eventNorth.lon);
-      const directionSouth = calculateDirection(userLat, userLon, eventSouth.lat, eventSouth.lon);
+      // Function to handle event selection
+      function selectEvent(event) {
+        const direction = calculateDirection(userLat, userLon, event.lat, event.lon);
+        arrow.setDirection(direction);
+        arrow.visible = true; // Show arrow when an event is selected
+      }
 
-      // Update arrow directions
-      arrowNorth.setDirection(directionNorth);
-      arrowSouth.setDirection(directionSouth);
+      // Simulate event selection (for demonstration)
+      setTimeout(() => selectEvent(events[0]), 3000); // Select "Event North" after 3 seconds
     }, (error) => {
       console.error("Error getting location:", error);
     });
