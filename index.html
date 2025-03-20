@@ -14,7 +14,7 @@
       document.addEventListener('DOMContentLoaded', () => {
         const scene = document.querySelector('a-scene');
 
-        // Add an event (box) at a specific GPS location
+        // Function to add an event (box) at a specific GPS location
         const addEvent = (latitude, longitude, color, name) => {
           const entity = document.createElement('a-entity');
           entity.setAttribute('gps-new-entity-place', {
@@ -56,29 +56,44 @@
         };
 
         // Get user's current location
-        navigator.geolocation.getCurrentPosition((position) => {
-          const userLat = position.coords.latitude;
-          const userLon = position.coords.longitude;
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
 
-          // Define two events: one 50m north and one 50m south of the user
-          const meterToDegree = 0.000008983; // Approximate conversion from meters to degrees
-          const eventNorth = {
-            name: "Event North",
-            lat: userLat + 50 * meterToDegree, // 50m north
-            lon: userLon,
-          };
-          const eventSouth = {
-            name: "Event South",
-            lat: userLat - 50 * meterToDegree, // 50m south
-            lon: userLon,
-          };
+            // Log user's location for debugging
+            console.log('User Location:', userLat, userLon);
 
-          // Add events to the scene
-          addEvent(eventNorth.lat, eventNorth.lon, 'red', eventNorth.name);
-          addEvent(eventSouth.lat, eventSouth.lon, 'blue', eventSouth.name);
-        }, (error) => {
-          console.error("Error getting location:", error);
-        });
+            // Define two events: one 50m north and one 50m south of the user
+            const meterToDegree = 0.000008983; // Approximate conversion from meters to degrees
+            const eventNorth = {
+              name: "Event North",
+              lat: userLat + 50 * meterToDegree, // 50m north
+              lon: userLon,
+            };
+            const eventSouth = {
+              name: "Event South",
+              lat: userLat - 50 * meterToDegree, // 50m south
+              lon: userLon,
+            };
+
+            // Log event locations for debugging
+            console.log('Event North:', eventNorth.lat, eventNorth.lon);
+            console.log('Event South:', eventSouth.lat, eventSouth.lon);
+
+            // Add events to the scene
+            addEvent(eventNorth.lat, eventNorth.lon, 'red', eventNorth.name);
+            addEvent(eventSouth.lat, eventSouth.lon, 'blue', eventSouth.name);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+          },
+          {
+            enableHighAccuracy: true, // Ensure high accuracy for GPS
+            timeout: 5000, // Timeout after 5 seconds
+            maximumAge: 0, // Do not use cached location
+          }
+        );
       });
     </script>
   </head>
