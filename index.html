@@ -1,17 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>NFT AR Test</title>
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <meta charset="utf-8">
+    <title>AR Event Viewer</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+    </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
-  <a-scene embedded arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; trackingMethod: best;">
-    <a-nft type="nft" url="assets/event-marker" smooth="true" smoothCount="10" smoothTolerance="0.01">
-      <a-box position="0 0.5 0" color="red"></a-box>
-    </a-nft>
-    <a-entity camera></a-entity>
-  </a-scene>
+    <div class="arjs-loader">
+        <div>Loading AR experience...</div>
+    </div>
+
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; trackingMethod: best;"
+    >
+        <a-nft 
+            type="nft" 
+            url="assets/event-marker"
+            smooth="true"
+            smoothCount="10"
+            smoothTolerance="0.01"
+        >
+            <a-box position="0 0.5 0" color="red"></a-box>
+        </a-nft>
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        window.addEventListener('arjs-nft-loaded', function() {
+            document.querySelector('.arjs-loader').style.display = 'none';
+        });
+    </script>
 </body>
 </html>
