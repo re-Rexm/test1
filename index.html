@@ -2,9 +2,10 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>AR Event Viewer</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <title>GPS AR Event Viewer</title>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="js/aframe-gps.js"></script>
     <style>
         .arjs-loader {
             height: 100%;
@@ -19,33 +20,40 @@
             align-items: center;
             color: white;
         }
+        .event-panel {
+            background: white;
+            border-radius: 5px;
+            padding: 10px;
+            width: 200px;
+            color: black;
+        }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <div class="arjs-loader">
-        <div>Loading AR experience...</div>
+    <div class="arjs-loader" id="loader">
+        <div>Loading GPS AR experience...<br>
+        <small>Make sure location services are enabled</small></div>
     </div>
 
     <a-scene 
+        vr-mode-ui="enabled: false"
         embedded 
-        arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; trackingMethod: best;"
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        gps-camera="gpsMinDistance: 5"
     >
-        <a-nft 
-            type="nft" 
-            url="assets/event-marker"
-            smooth="true"
-            smoothCount="10"
-            smoothTolerance="0.01"
-        >
-            <a-box position="0 0.5 0" color="red"></a-box>
-        </a-nft>
+        <!-- Event will be placed 10m east of your current location -->
+        <a-entity 
+            gps-entity-place="latitude: 0; longitude: 0" 
+            id="event-entity"
+            event-info="title: Spring Culture Event; 
+                       location: Campus Room; 
+                       time: 3pm; 
+                       details: Food available"
+        ></a-entity>
+        
         <a-entity camera></a-entity>
     </a-scene>
 
-    <script>
-        window.addEventListener('arjs-nft-loaded', function() {
-            document.querySelector('.arjs-loader').style.display = 'none';
-        });
-    </script>
+    <script src="js/app.js"></script>
 </body>
 </html>
