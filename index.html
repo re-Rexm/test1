@@ -2,10 +2,9 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>GPS AR Event Viewer</title>
+    <title>Indoor AR Event Viewer</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="js/aframe-gps.js"></script>
     <style>
         .arjs-loader {
             height: 100%;
@@ -21,39 +20,83 @@
             color: white;
         }
         .event-panel {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 5px;
             padding: 10px;
-            width: 200px;
+            width: 250px;
             color: black;
+            text-align: center;
+        }
+        .register-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-top: 8px;
+            display: inline-block;
         }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
     <div class="arjs-loader" id="loader">
-        <div>Loading GPS AR experience...<br>
-        <small>Make sure location services are enabled</small></div>
+        <div>Initializing AR...<br>
+        <small>Point your phone where you want the event to appear</small></div>
     </div>
 
     <a-scene 
         vr-mode-ui="enabled: false"
         embedded 
         arjs="sourceType: webcam; debugUIEnabled: false;"
-        gps-camera="gpsMinDistance: 5"
+        device-orientation-permission-ui="enabled: false"
     >
-        <!-- Event will be placed 10m east of your current location -->
-        <a-entity 
-            gps-entity-place="latitude: 0; longitude: 0" 
-            id="event-entity"
-            event-info="title: Spring Culture Event; 
-                       location: Campus Room; 
-                       time: 3pm; 
-                       details: Food available"
-        ></a-entity>
+        <!-- Event will be placed 3 meters in front of camera -->
+        <a-entity id="event-entity" position="0 0 -3">
+            <!-- White box -->
+            <a-box color="#FFFFFF" width="1.2" height="1" depth="0.1" position="0 0.5 0"></a-box>
+            
+            <!-- Event info panel -->
+            <a-entity class="event-panel" position="0 0.5 0.06">
+                <a-text value="Spring Culture Event" color="#E91E63" align="center" width="2" position="0 0.4 0"></a-text>
+                <a-text value="Location: Campus Room" color="#000000" align="center" width="2" position="0 0.2 0"></a-text>
+                <a-text value="Time: Today at 3 PM" color="#000000" align="center" width="2" position="0 0 0"></a-text>
+                <a-text value="Food & Drinks Available" color="#000000" align="center" width="2" position="0 -0.2 0"></a-text>
+                <a-entity class="register-btn" position="0 -0.4 0">
+                    <a-text value="Register Here" color="#FFFFFF" align="center" width="1.5"></a-text>
+                </a-entity>
+            </a-entity>
+        </a-entity>
         
         <a-entity camera></a-entity>
     </a-scene>
 
-    <script src="js/app.js"></script>
+    <script>
+    // Hide loader when AR is ready
+    document.querySelector('a-scene').addEventListener('loaded', function() {
+        setTimeout(function() {
+            document.getElementById('loader').style.display = 'none';
+        }, 1500);
+    });
+    
+    // Optional: Allow repositioning by tapping
+    let tapCount = 0;
+    document.querySelector('a-scene').addEventListener('click', function() {
+        tapCount++;
+        const eventEntity = document.getElementById('event-entity');
+        
+        // On first tap, show instructions
+        if (tapCount === 1) {
+            alert('Look where you want the event, then tap again to place it there');
+            return;
+        }
+        
+        // On second tap, reposition the event
+        if (tapCount > 1) {
+            // Place 3 meters in front of camera
+            eventEntity.setAttribute('position', '0 0 -3');
+            alert('Event position updated!');
+            tapCount = 0;
+        }
+    });
+    </script>
 </body>
 </html>
