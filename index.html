@@ -1,167 +1,61 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <title>360° Rotating AR Poster</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
-    <script src="https://threejs.org/build/three.min.js"></script>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        .arjs-loader {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <div class="arjs-loader">
-        <div>Loading AR experience, please wait...</div>
-    </div>
-    
-    <a-scene vr-mode-ui="enabled: false" embedded arjs='sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3;' renderer="logarithmicDepthBuffer: true;">
-        <!-- Rotating poster with custom Three.js component -->
-        <a-entity id="rotating-poster" 
-                gps-entity-place="latitude: 0; longitude: 0;"
-                rotation-controller
-                position="0 1.5 -2">
-            <!-- This will be positioned by JavaScript -->
-        </a-entity>
-        
-        <a-camera gps-camera rotation-reader></a-camera>
+  <head>
+    <title>Spring Food Poster</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
+  </head>
+  <body>
+    <a-scene gps-camera>
+      <a-sky color="lightblue"></a-sky>
+      
+      <!-- Poster Background -->
+      <a-plane 
+        position="0 3 -2"
+        width="3"
+        height="2"
+        color="white"
+        material="opacity: 0.8"
+      ></a-plane>
+
+      <!-- Event Text -->
+      <a-text position="0 3.5 -1.9" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
+      <a-text position="0 3.2 -1.9" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
+      <a-text position="0 2.9 -1.9" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
+      <a-text position="0 2.6 -1.9" value="12-6 PM" align="center" color="black" width="3"></a-text>
+      
+      <!-- Distance Display -->
+      <a-text id="distanceText" position="0 2.3 -1.9" align="center" color="purple" width="3"></a-text>
     </a-scene>
-
+    
     <script>
-        // Remove loader when scene is loaded
-        document.querySelector('a-scene').addEventListener('loaded', function() {
-            document.querySelector('.arjs-loader').style.display = 'none';
-        });
-
-        // Register custom rotation component
-        AFRAME.registerComponent('rotation-controller', {
-            init: function() {
-                // Create poster geometry
-                const posterWidth = 1.5;
-                const posterHeight = 2.5;
-                const borderThickness = 0.1;
-                const borderColor = '#4CC3D9';
-                const backgroundColor = '#FFFFFF';
-                const textColor = '#333333';
-                const textValue = "Hello AR World!";
-                
-                // Create Three.js group
-                const group = new THREE.Group();
-                
-                // Create poster background
-                const bgGeometry = new THREE.PlaneGeometry(posterWidth, posterHeight);
-                const bgMaterial = new THREE.MeshBasicMaterial({ 
-                    color: new THREE.Color(backgroundColor),
-                    side: THREE.DoubleSide
-                });
-                const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
-                group.add(bgMesh);
-                
-                // Create border
-                const borderGeometry = new THREE.BoxGeometry(
-                    posterWidth + borderThickness, 
-                    posterHeight + borderThickness, 
-                    borderThickness
-                );
-                const borderMaterial = new THREE.MeshBasicMaterial({ 
-                    color: new THREE.Color(borderColor)
-                });
-                const borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
-                borderMesh.position.z = -0.01;
-                group.add(borderMesh);
-                
-                // Create text
-                const textGeometry = new THREE.TextGeometry(textValue, {
-                    size: 0.2,
-                    height: 0.01,
-                    font: new THREE.FontLoader().parse(fontData) // See fontData below
-                });
-                const textMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(textColor) });
-                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                textMesh.position.set(-0.6, 0, 0.01);
-                group.add(textMesh);
-                
-                // Add group to entity
-                this.el.setObject3D('mesh', group);
-                
-                // Rotation animation
-                this.tick = function(time) {
-                    group.rotation.y = time / 2000; // Rotate continuously
-                };
-            }
-        });
-
-        // Simple font data (you can replace with more complex fonts)
-        const fontData = {
-            "glyphs": {
-                "H": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "e": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "l": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "o": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                " ": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "A": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "R": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "W": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "r": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "d": {"x_min":0,"x_max":1,"ha":1,"o":"..."},
-                "!": {"x_min":0,"x_max":1,"ha":1,"o":"..."}
-            },
-            "familyName": "Basic",
-            "ascender": 1,
-            "descender": 0,
-            "underlinePosition": -0.1,
-            "underlineThickness": 0.05,
-            "boundingBox": {"yMin":-0.2,"xMin":-0.2,"yMax":1.2,"xMax":1.2},
-            "resolution": 100,
-            "original_font_information": {}
-        };
-
-        // Set initial position based on geolocation
-        document.addEventListener('DOMContentLoaded', () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-                        const distance = 0.0001; // ~10 meters in degrees
-                        
-                        const poster = document.getElementById('rotating-poster');
-                        poster.setAttribute('gps-entity-place', {
-                            latitude: latitude + distance,
-                            longitude: longitude
-                        });
-                    },
-                    error => {
-                        console.error('Error getting location:', error);
-                        alert('Please enable location services for AR to work.');
-                    },
-                    { enableHighAccuracy: true }
-                );
-            } else {
-                alert('Geolocation is not supported by your browser.');
-            }
-        });
+      // Hardcoded event location
+      const eventLat = 37.7749;
+      const eventLon = -122.4194;
+      
+      function calculateDistance(userLat, userLon) {
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (eventLat - userLat) * (Math.PI / 180);
+        const dLon = (eventLon - userLon) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return (R * c).toFixed(2); // Distance in km
+      }
+      
+      function updateDistance() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
+            document.getElementById("distanceText").setAttribute("value", `Distance: ${distance} km away`);
+          });
+        } else {
+          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
+        }
+      }
+      
+      updateDistance();
     </script>
-</body>
+  </body>
 </html>
