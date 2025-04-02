@@ -1,61 +1,89 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Spring Food Poster</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
-  </head>
-  <body>
-    <a-scene>
-      <a-sky color="lightblue"></a-sky>
-      
-      <!-- Poster Background -->
-      <a-plane 
-        position="0 3 -2"
-        width="3"
-        height="2"
-        color="white"
-        material="opacity: 0.8"
-      ></a-plane>
 
-      <!-- Event Text -->
-      <a-text position="0 3.5 -1.9" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
-      <a-text position="0 3.2 -1.9" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
-      <a-text position="0 2.9 -1.9" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
-      <a-text position="0 2.6 -1.9" value="12-6 PM" align="center" color="black" width="3"></a-text>
-      
-      <!-- Distance Display -->
-      <a-text id="distanceText" position="0 2.3 -1.9" align="center" color="purple" width="3"></a-text>
-    </a-scene>
+  <head>
+    <title>AR.js A-Frame Location-based</title>
     
-    <script>
-      // Hardcoded event location
-      const eventLat = 37.7749;
-      const eventLon = -122.4194;
-      
-      function calculateDistance(userLat, userLon) {
-        const R = 6371; // Radius of the Earth in km
-        const dLat = (eventLat - userLat) * (Math.PI / 180);
-        const dLon = (eventLon - userLon) * (Math.PI / 180);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return (R * c).toFixed(2); // Distance in km
-      }
-      
-      function updateDistance() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
-            document.getElementById("distanceText").setAttribute("value", `Distance: ${distance} km away`);
-          });
-        } else {
-          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
-        }
-      }
-      
-      updateDistance();
-    </script>
+    <!-- Scripts for Dependencies -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script type='text/javascript' src='https://raw.githack.com/AR-js-org/AR.js/3.4.5/three.js/build/ar-threex-location-only.js'></script>
+    <script type='text/javascript' src='https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js'></script>
+    
+    <!-- Custom Scripts -->
+    <!-- <script src="./src/scripts/url-params.js"></script> -->
+    <script src="./src/scripts/event.js"></script>
+    <script src="./src/scripts/arrow.js"></script>
+    <script src="./src/scripts/distance.js"></script>
+
+
+  </head>
+
+  <body>
+    <a-scene
+     vr-mode-ui="enabled: false" 
+     arjs="sourceType: webcam; debugUIEnabled: false" 
+     renderer="antialias: true; alpha: true">
+    
+      <a-camera 
+      id = "cam"
+      gps-new-camera>
+          <!--Arrow Entity will point to Event entity -->
+          <a-entity
+          id="userPOV">
+          
+            <a-text
+            distance-calc
+            id="arrowTxt"
+            value="Your event is this way." 
+            width="2" 
+            align="center" 
+            color="white" 
+            position="0 -.93 -2.7">
+            </a-text>
+          
+              <a-entity
+              arrow-pointer
+              id="arrow"
+              scale=".07 .07 .07"
+              position="0 -.2 -.5" 
+              light="type: hemisphere; intensity: 2.0">
+    
+              <a-triangle
+                position="0 1.7 -3" 
+                color="yellow"
+                depth=".1">
+    
+                <a-box
+                  scale=".2 .8 .4" 
+                  depth=".1" 
+                  position="0 -.89 0" 
+                  color="yellow" 
+                  shadow="receive: false">
+                </a-box>
+              </a-triangle>
+            </a-entity>
+
+        </a-entity>
+      </a-camera>
+
+      <!-- Event Entity -->
+      <a-entity
+      rotation-tick
+      id="event"
+      geometry="primitive: box"
+      material="color: blue">
+
+        <a-text
+          id="eventxt"
+          value="EVENT NAME GOES HERE."
+          width="10"
+          align="center"
+          color="red"
+          position="0 2 1"
+          look-at="[gps-new-camera]">
+        </a-text>
+      </a-entity>
+    </a-scene>
   </body>
 </html>
