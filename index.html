@@ -6,7 +6,9 @@
     <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
   </head>
   <body>
-    <a-scene embedded gps-camera rotation-reader vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true">
+    <a-scene embedded vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true">
+      <a-camera gps-camera rotation-reader></a-camera>
+      
       <!-- Event Poster Container -->
       <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
         <a-plane 
