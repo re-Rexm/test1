@@ -1,57 +1,49 @@
 <html>
   <head>
-    <meta charset="utf-8">
-    <title>AR Poster</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            position => {
-              const latitude = position.coords.latitude;
-              const longitude = position.coords.longitude;
-              const distance = 0.0001; // ~10 meters in degrees
-              
-              const poster = document.getElementById('poster');
-              poster.setAttribute('gps-entity-place', {
-                latitude: latitude + distance,
-                longitude: longitude
-              });
-            },
-            error => {
-              console.error('Error getting location:', error);
-              alert('Please enable location services for AR to work.');
-            }
-          );
-        } else {
-          alert('Geolocation not supported by your browser.');
-        }
-      });
-    </script>
   </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs='sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3;'>
-      <!-- AR Poster -->
-      <a-entity id="poster" gps-entity-place>
-        <a-plane 
-          width="2" 
-          height="1" 
-          color="#4CC3D9"
-          material="side: double">
-          <a-text 
-            value="Hello World" 
-            align="center" 
-            width="1.8" 
-            position="0 0 0.01"
-            color="white"
-            font="mozillavr">
-          </a-text>
-        </a-plane>
-      </a-entity>
+  <body>
+    <a-scene>
+      <!-- Our poster (a plane with text) -->
+      <a-plane 
+        position="0 1.5 -3" 
+        width="2" 
+        height="1" 
+        color="#4CC3D9"
+        shadow>
+        <a-text 
+          value="Hello World" 
+          align="center" 
+          width="1.8" 
+          position="0 0 0.01"
+          color="white"
+          font="mozillavr">
+        </a-text>
+      </a-plane>
       
-      <a-camera gps-camera rotation-reader></a-camera>
+      <!-- Decorative elements -->
+      <a-box position="-1 0.5 -3" rotation="0 45 0" color="#EF2D5E" shadow></a-box>
+      <a-sphere position="1 0.5 -3" radius="0.5" color="#FFC65D" shadow></a-sphere>
+      
+      <!-- Floor -->
+      <a-plane 
+        position="0 0 -4" 
+        rotation="-90 0 0" 
+        width="10" 
+        height="10" 
+        color="#7BC8A4"
+        shadow>
+      </a-plane>
+      
+      <!-- Lighting -->
+      <a-light type="ambient" color="#445451"></a-light>
+      <a-light type="directional" color="#fff" intensity="0.5" position="-1 1 0.5"></a-light>
+      
+      <!-- Sky -->
+      <a-sky color="#ECECEC"></a-sky>
+      
+      <!-- Camera -->
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
     </a-scene>
   </body>
 </html>
