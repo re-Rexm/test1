@@ -6,12 +6,11 @@
     <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
   </head>
   <body>
-    <a-scene gps-camera>
-      <a-sky color="lightblue"></a-sky>
-      
-      <!-- Poster Background -->
+    <a-scene embedded gps-camera rotation-reader>
+      <!-- Event Poster -->
       <a-plane 
-        position="0 3 -2"
+        gps-entity-place="latitude: 39.782167; longitude: -84.064028"
+        position="0 3 0"
         width="3"
         height="2"
         color="white"
@@ -19,22 +18,21 @@
       ></a-plane>
 
       <!-- Event Text -->
-      <a-text position="0 3.5 -1.9" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
-      <a-text position="0 3.2 -1.9" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
-      <a-text position="0 2.9 -1.9" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
-      <a-text position="0 2.6 -1.9" value="12-6 PM" align="center" color="black" width="3"></a-text>
+      <a-text gps-entity-place="latitude: 39.782167; longitude: -84.064028" position="0 3.5 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
+      <a-text gps-entity-place="latitude: 39.782167; longitude: -84.064028" position="0 3.2 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
+      <a-text gps-entity-place="latitude: 39.782167; longitude: -84.064028" position="0 2.9 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
+      <a-text gps-entity-place="latitude: 39.782167; longitude: -84.064028" position="0 2.6 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
       
-      <!-- Distance Display -->
-      <a-text id="distanceText" position="0 2.3 -1.9" align="center" color="purple" width="3"></a-text>
+      <!-- Dynamic Distance Display -->
+      <a-text id="distanceText" position="0 2.3 0" align="center" color="purple" width="3"></a-text>
     </a-scene>
     
     <script>
-      // Hardcoded event location
-      const eventLat = 37.7749;
-      const eventLon = -122.4194;
+      const eventLat = 39.782167;
+      const eventLon = -84.064028;
       
       function calculateDistance(userLat, userLon) {
-        const R = 6371; // Radius of the Earth in km
+        const R = 6371; // Radius of Earth in km
         const dLat = (eventLat - userLat) * (Math.PI / 180);
         const dLon = (eventLon - userLon) * (Math.PI / 180);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -46,7 +44,7 @@
       
       function updateDistance() {
         if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
+          navigator.geolocation.watchPosition((position) => {
             const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
             document.getElementById("distanceText").setAttribute("value", `Distance: ${distance} km away`);
           });
