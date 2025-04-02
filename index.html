@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Spring Food Poster</title>
+    <title>Spring Food Poster AR</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
     <style>
@@ -9,53 +9,62 @@
         margin: 0;
         overflow: hidden;
       }
-      #loading {
+      #permissionMessage {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         color: white;
-        font-family: Arial;
         background: rgba(0,0,0,0.7);
         padding: 20px;
         border-radius: 10px;
+        text-align: center;
         z-index: 1000;
+        font-family: Arial;
       }
     </style>
   </head>
   <body>
-    <div id="loading">Waiting for GPS... Please allow location access</div>
-    
-    <a-scene embedded vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true">
-      <!-- Add a sky background -->
-      <a-sky color="#87CEEB"></a-sky>
+    <div id="permissionMessage">
+      Please allow camera and location access for AR experience
+    </div>
+
+    <a-scene 
+      embedded 
+      vr-mode-ui="enabled: false" 
+      renderer="logarithmicDepthBuffer: true; alpha: true"
+      xr-mode-ui="enabled: true"
+    >
+      <!-- Camera feed as background -->
+      <a-entity id="camera-feed" position="0 0 -5"></a-entity>
       
-      <!-- Add some ground -->
-      <a-circle rotation="-90 0 0" radius="100" color="#7CFC00"></a-circle>
-      
-      <a-camera gps-camera="simulateLatitude: 39.782; simulateLongitude: -84.064;" rotation-reader></a-camera>
-      
-      <!-- Event Poster Container -->
+      <!-- AR content -->
       <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
         <a-plane 
           position="0 1.5 0"
           width="3"
           height="2"
           color="white"
-          material="opacity: 0.8"
+          material="opacity: 0.8; transparent: true"
         ></a-plane>
         
-        <!-- Event Text -->
         <a-text position="0 2 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
         <a-text position="0 1.7 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
         <a-text position="0 1.4 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
         <a-text position="0 1.1 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
         
-        <!-- Dynamic Distance Display -->
         <a-text id="distanceText" position="0 0.8 0" align="center" color="purple" width="3"></a-text>
       </a-entity>
+
+      <!-- AR Camera configuration -->
+      <a-camera 
+        gps-camera 
+        rotation-reader
+        wasd-controls="enabled: false"
+        look-controls="enabled: true"
+      ></a-camera>
     </a-scene>
-    
+
     <script>
       const eventLat = 39.782167;
       const eventLon = -84.064028;
@@ -71,26 +80,67 @@
         return (R * c).toFixed(2); // Distance in km
       }
       
+      function initAR() {
+        // Check for WebXR support
+        if (!navigator.xr) {
+          document.getElementById('permissionMessage').textContent = 
+            "AR not supported in your browser. Try Chrome or Safari on mobile.";
+          return;
+        }
+        
+        // Request camera and location permissions
+        navigator.permissions.query({name: 'geolocation'}).then(permissionStatus => {
+          if (permissionStatus.state === 'denied') {
+            document.getElementById('permissionMessage').textContent = 
+              "Location permission denied. Please enable it in settings.";
+            return;
+          }
+          
+          // Start AR session
+          const scene = document.querySelector('a-scene');
+          scene.enterXR('ar', 'local-floor').then(() => {
+            document.getElementById('permissionMessage').style.display = 'none';
+            updateDistance();
+          }).catch(err => {
+            console.error("AR failed to start:", err);
+            document.getElementById('permissionMessage').textContent = 
+              "Couldn't start AR. Make sure your device supports ARCore/ARKit.";
+          });
+        });
+      }
+      
       function updateDistance() {
         if (navigator.geolocation) {
-          navigator.geolocation.watchPosition((position) => {
-            const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
-            document.getElementById("distanceText").setAttribute("value", `Distance: ${distance} km away`);
-            document.getElementById("loading").style.display = "none";
-          }, (error) => {
-            console.error("Geolocation error: ", error);
-            document.getElementById("loading").textContent = "Error getting location. Please enable GPS.";
-          }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+          navigator.geolocation.watchPosition(
+            (position) => {
+              const distance = calculateDistance(
+                position.coords.latitude, 
+                position.coords.longitude
+              );
+              document.getElementById("distanceText").setAttribute(
+                "value", 
+                `${distance} km away`
+              );
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              document.getElementById("distanceText").setAttribute(
+                "value", 
+                "Location unavailable"
+              );
+            },
+            { enableHighAccuracy: true }
+          );
         } else {
-          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
-          document.getElementById("loading").textContent = "Geolocation not supported by your browser";
+          document.getElementById("distanceText").setAttribute(
+            "value", 
+            "Geolocation not supported"
+          );
         }
       }
       
-      // Start the distance updates when the scene is loaded
-      document.querySelector('a-scene').addEventListener('loaded', function() {
-        updateDistance();
-      });
+      // Initialize when scene loads
+      document.querySelector('a-scene').addEventListener('loaded', initAR);
     </script>
   </body>
 </html>
