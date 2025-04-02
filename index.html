@@ -1,54 +1,61 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Text - 01</title>
+    <title>Spring Food Poster</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
   </head>
   <body>
-    <a-scene>
-      <a-sky color="lightblue"></a-sky>
+    <a-scene ar>
+  
+      
+      <!-- Poster Background -->
+      <a-plane 
+        position="0 3 -2"
+        width="3"
+        height="2"
+        color="white"
+        material="opacity: 0.8"
+      ></a-plane>
 
-      <a-box
-        position="0 2 -2"
-        width="1"
-        height="1"
-        depth="1"
-        rotation="0 0 0"
-        color="red"
-      ></a-box>
-
-      <!-- Camera with HUD elements as children -->
-      <a-entity camera look-controls position="0 1.6 0">
-        <!-- Text that will stay fixed to the camera/view -->
-        <a-text
-          position="0 0.3 -0.5"
-          value="Hello, A-Frame World!"
-          align="center"
-        ></a-text>
-        
-        <a-text
-          position="0 0 -0.5"
-          value="This is fixed to your view"
-          align="center"
-          color="palegreen"
-        ></a-text>
-      </a-entity>
-
-      <!-- Original scene text elements (will remain in 3D space) -->
-      <a-text
-        position="0 2.5 -1.5"
-        value="This should be in front of red cube"
-        align="center"
-        color="palegreen"
-      ></a-text>
-
-      <a-text
-        position="0 2 -1.5"
-        width="1.5"
-        value="This should be in front of red cube"
-        align="center"
-        color="palegreen"
-      ></a-text>
+      <!-- Event Text -->
+      <a-text position="0 3.5 -1.9" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
+      <a-text position="0 3.2 -1.9" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
+      <a-text position="0 2.9 -1.9" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
+      <a-text position="0 2.6 -1.9" value="12-6 PM" align="center" color="black" width="3"></a-text>
+      
+      <!-- Distance Display -->
+      <a-text id="distanceText" position="0 2.3 -1.9" align="center" color="purple" width="3"></a-text>
     </a-scene>
+    
+    <script>
+      // Hardcoded event location
+      const eventLat = 37.7749;
+      const eventLon = -84;
+      
+      function calculateDistance(userLat, userLon) {
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (eventLat - userLat) * (Math.PI / 180);
+        const dLon = (eventLon - userLon) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return (R * c).toFixed(2); // Distance in km
+      }
+      
+      function updateDistance() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
+            document.getElementById("distanceText").setAttribute("value", `Distance: ${distance} km away`);
+          });
+        } else {
+          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
+        }
+      }
+      
+      updateDistance();
+    </script>
   </body>
 </html>
