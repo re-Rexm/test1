@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Spring Food Festival AR</title>
+    <title>Spring Food Poster</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
     <style>
@@ -15,191 +15,89 @@
         left: 50%;
         transform: translate(-50%, -50%);
         color: white;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0, 0, 0, 0.7);
         padding: 20px;
         border-radius: 10px;
         text-align: center;
         z-index: 1000;
         font-family: Arial;
       }
-      #debugInfo {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        color: white;
-        background: rgba(0,0,0,0.5);
-        padding: 10px;
-        font-family: Arial;
-        font-size: 12px;
-      }
     </style>
   </head>
   <body>
     <div id="permissionMessage">
-      Waiting for permissions...<br>
-      <button id="requestPermissions">Click to Request Permissions</button>
+      Please allow camera and location access for AR experience
     </div>
-    <div id="debugInfo"></div>
 
     <a-scene 
-      vr-mode-ui="enabled: false"
+      embedded 
+      vr-mode-ui="enabled: false" 
       renderer="logarithmicDepthBuffer: true; alpha: true"
       xr-mode-ui="enabled: true"
     >
-      <!-- AR Poster Content -->
-      <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
-        <a-plane position="0 1.5 0" width="3" height="2" color="white" material="opacity: 0.8; transparent: true"></a-plane>
-        <a-text position="0 2 0" value="SPRING FOOD FESTIVAL" align="center" color="green" width="3"></a-text>
-        <a-text position="0 1.7 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
-        <a-text position="0 1.4 0" value="FREE FOR ALL STUDENTS" align="center" color="red" width="3"></a-text>
-        <a-text position="0 1.1 0" value="APRIL 15TH • 12-6 PM" align="center" color="black" width="3"></a-text>
-        <a-text id="distanceText" position="0 0.8 0" align="center" color="purple" width="3" value="Calculating distance..."></a-text>
-      </a-entity>
-
-      <a-camera gps-camera rotation-reader wasd-controls="enabled: false" look-controls="enabled: true"></a-camera>
-    </a-scene>
-
-    <script>
-      // Debugging function
-      function debugLog(message) {
-        const debugElement = document.getElementById('debugInfo');
-        debugElement.innerHTML += message + '<br>';
-        console.log(message);
-      }
-
-      // Event location
-      const eventLocation = {
-        latitude: 39.782167,
-        longitude: -84.064028
-      };
+      <a-camera gps-camera rotation-reader></a-camera>
       
-      // Calculate distance
-      function calculateDistance(lat1, lon1, lat2, lon2) {
+      <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
+        <a-plane 
+          position="0 3 0"
+          width="3"
+          height="2"
+          color="white"
+          material="opacity: 0.8"
+        ></a-plane>
+        
+        <a-text position="0 3.5 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
+        <a-text position="0 3.2 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
+        <a-text position="0 2.9 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
+        <a-text position="0 2.6 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
+        
+        <a-text id="distanceText" position="0 2.3 0" align="center" color="purple" width="3" value="Calculating distance..."></a-text>
+      </a-entity>
+    </a-scene>
+    
+    <script>
+      const eventLat = 39.782167;
+      const eventLon = -84.064028;
+      
+      function calculateDistance(userLat, userLon) {
         const R = 6371;
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = 
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const dLat = (eventLat - userLat) * (Math.PI / 180);
+        const dLon = (eventLon - userLon) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return (R * c).toFixed(2);
       }
       
-      // Request permissions explicitly
-      async function requestPermissions() {
-        try {
-          debugLog("Requesting camera permission...");
-          const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          debugLog("Camera permission granted");
-          
-          debugLog("Requesting location permission...");
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 5000
-            });
-          });
-          debugLog("Location permission granted");
-          
-          return true;
-        } catch (error) {
-          debugLog("Permission error: " + error.message);
-          document.getElementById('permissionMessage').innerHTML = 
-            `Permission denied: ${error.message}<br>
-            Please refresh and allow permissions when prompted.`;
-          return false;
-        }
-      }
-      
-      // Initialize AR
-      async function initAR() {
-        debugLog("Initializing AR...");
-        
-        // Check for WebXR support
-        if (!navigator.xr) {
-          const message = "WebXR not supported in your browser";
-          debugLog(message);
-          document.getElementById('permissionMessage').textContent = message;
-          return;
-        }
-        
-        // Check if we're running in a supported browser
-        if (!(await navigator.xr.isSessionSupported('immersive-ar'))) {
-          const message = "AR not supported in your browser. Try Chrome on Android or Safari on iOS.";
-          debugLog(message);
-          document.getElementById('permissionMessage').textContent = message;
-          return;
-        }
-        
-        // Request permissions
-        const permissionsGranted = await requestPermissions();
-        if (!permissionsGranted) return;
-        
-        // Start AR session
-        try {
-          const scene = document.querySelector('a-scene');
-          await scene.enterXR('immersive-ar', 'local-floor');
-          document.getElementById('permissionMessage').style.display = 'none';
-          startLocationUpdates();
-          debugLog("AR session started successfully");
-        } catch (error) {
-          debugLog("AR session failed: " + error.message);
-          document.getElementById('permissionMessage').textContent = 
-            "Couldn't start AR: " + error.message;
-        }
-      }
-      
-      // Start location updates
-      function startLocationUpdates() {
-        debugLog("Starting location updates...");
-        
-        if (!navigator.geolocation) {
+      function updateDistance() {
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition(
+            (position) => {
+              const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
+              document.getElementById("distanceText").setAttribute("value", `${distance} km away`);
+              document.getElementById('permissionMessage').style.display = 'none';
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              document.getElementById("distanceText").setAttribute("value", "Location unavailable");
+            },
+            { enableHighAccuracy: true }
+          );
+        } else {
           document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
-          return;
         }
-        
-        navigator.geolocation.watchPosition(
-          (position) => {
-            const distance = calculateDistance(
-              position.coords.latitude, 
-              position.coords.longitude,
-              eventLocation.latitude,
-              eventLocation.longitude
-            );
-            
-            document.getElementById("distanceText").setAttribute(
-              "value", 
-              `${distance} km away (${position.coords.accuracy.toFixed(0)}m accuracy)`
-            );
-            
-            debugLog(`Position updated: ${distance}km away`);
-          },
-          (error) => {
-            debugLog("Geolocation error: " + error.message);
-            document.getElementById("distanceText").setAttribute(
-              "value", 
-              "Location error: " + error.message
-            );
-          },
-          { 
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 5000
-          }
-        );
       }
       
-      // Set up permission request button
-      document.getElementById('requestPermissions').addEventListener('click', async () => {
-        debugLog("User clicked permission request button");
-        await initAR();
-      });
+      function requestPermissions() {
+        navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
+          updateDistance();
+        }).catch(error => {
+          console.error("Camera permission denied:", error);
+        });
+      }
       
-      // Initial debug info
-      debugLog(`Browser: ${navigator.userAgent}`);
-      debugLog(`HTTPS: ${window.location.protocol === 'https:'}`);
-      debugLog(`WebXR available: ${!!navigator.xr}`);
+      document.querySelector('a-scene').addEventListener('loaded', requestPermissions);
     </script>
   </body>
 </html>
