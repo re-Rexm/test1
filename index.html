@@ -1,103 +1,54 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Spring Food Poster</title>
+    <title>Text - 01</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
-      #permissionMessage {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        z-index: 1000;
-        font-family: Arial;
-      }
-    </style>
   </head>
   <body>
-    <div id="permissionMessage">
-      Please allow camera and location access for AR experience
-    </div>
+    <a-scene>
+      <a-sky color="lightblue"></a-sky>
 
-    <a-scene 
-      embedded 
-      vr-mode-ui="enabled: false" 
-      renderer="logarithmicDepthBuffer: true; alpha: true"
-      xr-mode-ui="enabled: true"
-    >
-      <a-camera gps-camera rotation-reader></a-camera>
-      
-      <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
-        <a-plane 
-          position="0 3 0"
-          width="3"
-          height="2"
-          color="white"
-          material="opacity: 0.8"
-        ></a-plane>
+      <a-box
+        position="0 2 -2"
+        width="1"
+        height="1"
+        depth="1"
+        rotation="0 0 0"
+        color="red"
+      ></a-box>
+
+      <!-- Camera with HUD elements as children -->
+      <a-entity camera look-controls position="0 1.6 0">
+        <!-- Text that will stay fixed to the camera/view -->
+        <a-text
+          position="0 0.3 -0.5"
+          value="Hello, A-Frame World!"
+          align="center"
+        ></a-text>
         
-        <a-text position="0 3.5 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
-        <a-text position="0 3.2 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
-        <a-text position="0 2.9 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
-        <a-text position="0 2.6 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
-        
-        <a-text id="distanceText" position="0 2.3 0" align="center" color="purple" width="3" value="Calculating distance..."></a-text>
+        <a-text
+          position="0 0 -0.5"
+          value="This is fixed to your view"
+          align="center"
+          color="palegreen"
+        ></a-text>
       </a-entity>
+
+      <!-- Original scene text elements (will remain in 3D space) -->
+      <a-text
+        position="0 2.5 -1.5"
+        value="This should be in front of red cube"
+        align="center"
+        color="palegreen"
+      ></a-text>
+
+      <a-text
+        position="0 2 -1.5"
+        width="1.5"
+        value="This should be in front of red cube"
+        align="center"
+        color="palegreen"
+      ></a-text>
     </a-scene>
-    
-    <script>
-      const eventLat = 39.782167;
-      const eventLon = -84.064028;
-      
-      function calculateDistance(userLat, userLon) {
-        const R = 6371;
-        const dLat = (eventLat - userLat) * (Math.PI / 180);
-        const dLon = (eventLon - userLon) * (Math.PI / 180);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return (R * c).toFixed(2);
-      }
-      
-      function updateDistance() {
-        if (navigator.geolocation) {
-          navigator.geolocation.watchPosition(
-            (position) => {
-              const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
-              document.getElementById("distanceText").setAttribute("value", `${distance} km away`);
-              document.getElementById('permissionMessage').style.display = 'none';
-            },
-            (error) => {
-              console.error("Geolocation error:", error);
-              document.getElementById("distanceText").setAttribute("value", "Location unavailable");
-            },
-            { enableHighAccuracy: true }
-          );
-        } else {
-          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
-        }
-      }
-      
-      function requestPermissions() {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
-          updateDistance();
-        }).catch(error => {
-          console.error("Camera permission denied:", error);
-        });
-      }
-      
-      document.querySelector('a-scene').addEventListener('loaded', requestPermissions);
-    </script>
   </body>
 </html>
