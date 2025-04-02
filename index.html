@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Spring Food Poster AR</title>
+    <title>Spring Food Poster</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-gps-camera-component@1.7.0/dist/aframe-gps-camera-component.min.js"></script>
     <style>
@@ -15,7 +15,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         color: white;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0, 0, 0, 0.7);
         padding: 20px;
         border-radius: 10px;
         text-align: center;
@@ -35,111 +35,64 @@
       renderer="logarithmicDepthBuffer: true; alpha: true"
       xr-mode-ui="enabled: true"
     >
-      <!-- Camera feed as background -->
-      <a-entity id="camera-feed" position="0 0 -5"></a-entity>
+      <a-camera gps-camera rotation-reader></a-camera>
       
-      <!-- AR content -->
       <a-entity gps-entity-place="latitude: 39.782167; longitude: -84.064028">
         <a-plane 
-          position="0 1.5 0"
+          position="0 3 0"
           width="3"
           height="2"
           color="white"
-          material="opacity: 0.8; transparent: true"
+          material="opacity: 0.8"
         ></a-plane>
         
-        <a-text position="0 2 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
-        <a-text position="0 1.7 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
-        <a-text position="0 1.4 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
-        <a-text position="0 1.1 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
+        <a-text position="0 3.5 0" value="SPRING FOOD" align="center" color="green" width="3"></a-text>
+        <a-text position="0 3.2 0" value="STUDENT UNION" align="center" color="blue" width="3"></a-text>
+        <a-text position="0 2.9 0" value="FREE FOR ALL" align="center" color="red" width="3"></a-text>
+        <a-text position="0 2.6 0" value="12-6 PM" align="center" color="black" width="3"></a-text>
         
-        <a-text id="distanceText" position="0 0.8 0" align="center" color="purple" width="3"></a-text>
+        <a-text id="distanceText" position="0 2.3 0" align="center" color="purple" width="3"></a-text>
       </a-entity>
-
-      <!-- AR Camera configuration -->
-      <a-camera 
-        gps-camera 
-        rotation-reader
-        wasd-controls="enabled: false"
-        look-controls="enabled: true"
-      ></a-camera>
     </a-scene>
-
+    
     <script>
       const eventLat = 39.782167;
       const eventLon = -84.064028;
       
       function calculateDistance(userLat, userLon) {
-        const R = 6371; // Radius of Earth in km
+        const R = 6371;
         const dLat = (eventLat - userLat) * (Math.PI / 180);
         const dLon = (eventLon - userLon) * (Math.PI / 180);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                   Math.cos(userLat * (Math.PI / 180)) * Math.cos(eventLat * (Math.PI / 180)) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return (R * c).toFixed(2); // Distance in km
-      }
-      
-      function initAR() {
-        // Check for WebXR support
-        if (!navigator.xr) {
-          document.getElementById('permissionMessage').textContent = 
-            "AR not supported in your browser. Try Chrome or Safari on mobile.";
-          return;
-        }
-        
-        // Request camera and location permissions
-        navigator.permissions.query({name: 'geolocation'}).then(permissionStatus => {
-          if (permissionStatus.state === 'denied') {
-            document.getElementById('permissionMessage').textContent = 
-              "Location permission denied. Please enable it in settings.";
-            return;
-          }
-          
-          // Start AR session
-          const scene = document.querySelector('a-scene');
-          scene.enterXR('ar', 'local-floor').then(() => {
-            document.getElementById('permissionMessage').style.display = 'none';
-            updateDistance();
-          }).catch(err => {
-            console.error("AR failed to start:", err);
-            document.getElementById('permissionMessage').textContent = 
-              "Couldn't start AR. Make sure your device supports ARCore/ARKit.";
-          });
-        });
+        return (R * c).toFixed(2);
       }
       
       function updateDistance() {
         if (navigator.geolocation) {
           navigator.geolocation.watchPosition(
             (position) => {
-              const distance = calculateDistance(
-                position.coords.latitude, 
-                position.coords.longitude
-              );
-              document.getElementById("distanceText").setAttribute(
-                "value", 
-                `${distance} km away`
-              );
+              const distance = calculateDistance(position.coords.latitude, position.coords.longitude);
+              document.getElementById("distanceText").setAttribute("value", `${distance} km away`);
             },
             (error) => {
               console.error("Geolocation error:", error);
-              document.getElementById("distanceText").setAttribute(
-                "value", 
-                "Location unavailable"
-              );
+              document.getElementById("distanceText").setAttribute("value", "Location unavailable");
             },
             { enableHighAccuracy: true }
           );
         } else {
-          document.getElementById("distanceText").setAttribute(
-            "value", 
-            "Geolocation not supported"
-          );
+          document.getElementById("distanceText").setAttribute("value", "Geolocation not supported");
         }
       }
       
-      // Initialize when scene loads
+      function initAR() {
+        document.getElementById('permissionMessage').style.display = 'none';
+        updateDistance();
+      }
+      
       document.querySelector('a-scene').addEventListener('loaded', initAR);
     </script>
   </body>
