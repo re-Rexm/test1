@@ -1,32 +1,26 @@
-// arrow.js
-// This script adds a custom component that changes rotation of the arrow entity based on the users camera POV and the target (event) location.
-
 AFRAME.registerComponent("arrow-pointer", {
-  init: function () {
-    this.arrowEl = this.el // The entity doing the pointing (tagged element)
-    this.targetEl = document.querySelector("#event") // The entity we want to point toward
-    this.cameraEl = document.querySelector("a-camera") // POV using the user's camera
-  },
+    init: function () {
+        this.arrowEl = this.el;
+        this.targetEl = document.querySelector(".event-marker[visible='true']") || 
+                       document.querySelector(".event-marker");
+        this.cameraEl = document.querySelector("a-camera");
+    },
 
-  // With every frame update, 90ms, rotate toward the targetEL
-  tick: function () {
-    if (!this.targetEl || !this.cameraEl) return
+    tick: function () {
+        if (!this.targetEl || !this.cameraEl) return;
 
-    // World position of the event (target) element
-    const targetWorldPos = new THREE.Vector3()
-    this.targetEl.object3D.getWorldPosition(targetWorldPos)
+        const targetWorldPos = new THREE.Vector3();
+        this.targetEl.object3D.getWorldPosition(targetWorldPos);
 
-    // Converted event (target) world position to Local position of camera element
-    const targetLocalPos = targetWorldPos.clone()
-    this.cameraEl.object3D.worldToLocal(targetLocalPos)
+        const cameraPos = new THREE.Vector3();
+        this.cameraEl.object3D.getWorldPosition(cameraPos);
 
-    // Angle in radians
-    const angleRad = Math.atan2(targetLocalPos.y, targetLocalPos.x)
+        const targetLocalPos = targetWorldPos.clone();
+        this.cameraEl.object3D.worldToLocal(targetLocalPos);
 
-    // Convert radian angle to degrees
-    var angleDeg = (180 / 3.1415926535) * angleRad - 90
+        const angleRad = Math.atan2(targetLocalPos.y, targetLocalPos.x);
+        const angleDeg = (180 / Math.PI) * angleRad - 90;
 
-    // Set degree to the z-axis of the arrow element
-    this.arrowEl.setAttribute("rotation", { x: 0, y: 0, z: angleDeg })
-  },
-})
+        this.arrowEl.setAttribute("rotation", { x: 0, y: 0, z: angleDeg });
+    }
+});
