@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const baseLat = 39.786495;
     const baseLng = -84.068553;
     
-    // Distance in degrees (approx 500m)
-    const offset = 0.0045;
+    // Distance in degrees 
+    const offset = 0.0005;
     
     // Define 4 events at cardinal directions
     const events = [
