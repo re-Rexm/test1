@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const baseLat = 39.786495;
     const baseLng = -84.068553;
-    const offset = 0.0045; // ~500m
+    const offset = 0.0001; // ~500m
     
     const events = [
         {
