@@ -3,6 +3,8 @@ AFRAME.registerComponent('arrow-pointer', {
     this.arrowEl = this.el;
     this.cameraEl = document.querySelector('a-camera');
     this.targetPos = new THREE.Vector3();
+    this.cameraWorldPos = new THREE.Vector3();
+    this.direction = new THREE.Vector3();
   },
 
   tick: function () {
@@ -14,16 +16,20 @@ AFRAME.registerComponent('arrow-pointer', {
     const eventEntity = activeText.closest('a-entity');
     if (!eventEntity) return;
 
+    // Get world position of the text (which stays where the box was)
     eventEntity.object3D.getWorldPosition(this.targetPos);
-
-    const cameraWorldPos = new THREE.Vector3();
-    this.cameraEl.object3D.getWorldPosition(cameraWorldPos);
-
-    const direction = new THREE.Vector3();
-    direction.subVectors(this.targetPos, cameraWorldPos).normalize();
-    this.cameraEl.object3D.worldToLocal(direction);
-
-    const angle = Math.atan2(direction.x, direction.z);
+    
+    // Get camera position
+    this.cameraEl.object3D.getWorldPosition(this.cameraWorldPos);
+    
+    // Calculate direction vector
+    this.direction.subVectors(this.targetPos, this.cameraWorldPos).normalize();
+    
+    // Convert to camera local space
+    this.cameraEl.object3D.worldToLocal(this.direction);
+    
+    // Calculate angle and rotate arrow
+    const angle = Math.atan2(this.direction.x, this.direction.z);
     this.arrowEl.setAttribute('rotation', {
       x: 0,
       y: 0,
