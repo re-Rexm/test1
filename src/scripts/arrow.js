@@ -1,26 +1,33 @@
-AFRAME.registerComponent("arrow-pointer", {
-    init: function () {
-        this.arrowEl = this.el;
-        this.targetEl = document.querySelector(".event-marker[visible='true']") || 
-                       document.querySelector(".event-marker");
-        this.cameraEl = document.querySelector("a-camera");
-    },
+AFRAME.registerComponent('arrow-pointer', {
+  init: function () {
+    this.arrowEl = this.el;
+    this.cameraEl = document.querySelector('a-camera');
+    this.targetPos = new THREE.Vector3();
+  },
 
-    tick: function () {
-        if (!this.targetEl || !this.cameraEl) return;
+  tick: function () {
+    if (!this.cameraEl || this.arrowEl.getAttribute('visible') !== true) return;
 
-        const targetWorldPos = new THREE.Vector3();
-        this.targetEl.object3D.getWorldPosition(targetWorldPos);
+    const activeText = document.querySelector('.event-text[visible="true"]');
+    if (!activeText) return;
 
-        const cameraPos = new THREE.Vector3();
-        this.cameraEl.object3D.getWorldPosition(cameraPos);
+    const eventEntity = activeText.closest('a-entity');
+    if (!eventEntity) return;
 
-        const targetLocalPos = targetWorldPos.clone();
-        this.cameraEl.object3D.worldToLocal(targetLocalPos);
+    eventEntity.object3D.getWorldPosition(this.targetPos);
 
-        const angleRad = Math.atan2(targetLocalPos.y, targetLocalPos.x);
-        const angleDeg = (180 / Math.PI) * angleRad - 90;
+    const cameraWorldPos = new THREE.Vector3();
+    this.cameraEl.object3D.getWorldPosition(cameraWorldPos);
 
-        this.arrowEl.setAttribute("rotation", { x: 0, y: 0, z: angleDeg });
-    }
+    const direction = new THREE.Vector3();
+    direction.subVectors(this.targetPos, cameraWorldPos).normalize();
+    this.cameraEl.object3D.worldToLocal(direction);
+
+    const angle = Math.atan2(direction.x, direction.z);
+    this.arrowEl.setAttribute('rotation', {
+      x: 0,
+      y: 0,
+      z: THREE.Math.radToDeg(angle)
+    });
+  }
 });
