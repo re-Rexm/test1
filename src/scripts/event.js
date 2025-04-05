@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.setAttribute('visible', true);
       eventEntity.appendChild(marker);
 
-      // Create text label
+      // Create text label - initially hidden
       const text = document.createElement('a-text');
       text.setAttribute('class', 'event-text');
       text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -81,6 +81,9 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('look-at', '[gps-camera]');
       text.setAttribute('clickable', '');
       eventEntity.appendChild(text);
+
+      // Store original position
+      eventEntity.originalPosition = null;
 
       // Add event listeners
       const handleClick = () => toggleEventDisplay(event.id);
@@ -103,11 +106,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const isMarkerVisible = marker.getAttribute('visible') !== false;
 
     if (isMarkerVisible) {
+      // Store original position before moving
+      if (!eventEntity.originalPosition) {
+        eventEntity.originalPosition = eventEntity.getAttribute('position');
+      }
+
       // Switch to text view
       marker.setAttribute('visible', false);
       text.setAttribute('visible', true);
+      
+      // Keep text at the same world position as the marker was
+      const markerWorldPos = new THREE.Vector3();
+      marker.object3D.getWorldPosition(markerWorldPos);
+      
+      const cameraWorldPos = new THREE.Vector3();
+      document.querySelector('a-camera').object3D.getWorldPosition(cameraWorldPos);
+      
+      // Calculate position relative to camera
+      const relativePos = new THREE.Vector3();
+      relativePos.subVectors(markerWorldPos, cameraWorldPos);
+      relativePos.normalize().multiplyScalar(5); // 5 units in front of camera
+      
+      eventEntity.setAttribute('position', relativePos);
       eventEntity.removeAttribute('gps-entity-place');
-      eventEntity.setAttribute('position', '0 1.5 -3');
 
       // Show arrow and text
       if (arrow && arrowText) {
