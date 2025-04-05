@@ -1,21 +1,25 @@
-AFRAME.registerComponent("distance-calc", {
-    init: function () {
-        this.arrowText = this.el;
-        this.targetEl = document.querySelector(".event-marker[visible='true']") || 
-                       document.querySelector(".event-marker");
-        this.cameraEl = document.querySelector("a-camera");
-    },
+AFRAME.registerComponent('distance-calc', {
+  init: function () {
+    this.arrowText = this.el;
+    this.cameraEl = document.querySelector('a-camera');
+  },
 
-    tick: function () {
-        if (!this.targetEl || !this.cameraEl) return;
+  tick: function () {
+    if (!this.cameraEl || this.arrowText.getAttribute('visible') !== true) return;
 
-        const targetPos = new THREE.Vector3();
-        this.targetEl.object3D.getWorldPosition(targetPos);
+    const activeText = document.querySelector('.event-text[visible="true"]');
+    if (!activeText) return;
 
-        const cameraPos = new THREE.Vector3();
-        this.cameraEl.object3D.getWorldPosition(cameraPos);
+    const eventEntity = activeText.closest('a-entity');
+    if (!eventEntity) return;
 
-        const distance = cameraPos.distanceTo(targetPos).toFixed(1);
-        this.arrowText.setAttribute("value", `Nearest event: ${distance}m\nTap colored cubes for details`);
-    }
+    const targetPos = new THREE.Vector3();
+    eventEntity.object3D.getWorldPosition(targetPos);
+
+    const cameraPos = new THREE.Vector3();
+    this.cameraEl.object3D.getWorldPosition(cameraPos);
+
+    const distance = cameraPos.distanceTo(targetPos).toFixed(2);
+    this.arrowText.setAttribute('value', `Your event is this way\nDistance: ${distance}m`);
+  }
 });
