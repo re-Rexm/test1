@@ -2,6 +2,8 @@ AFRAME.registerComponent('distance-calc', {
   init: function () {
     this.arrowText = this.el;
     this.cameraEl = document.querySelector('a-camera');
+    this.targetPos = new THREE.Vector3();
+    this.cameraPos = new THREE.Vector3();
   },
 
   tick: function () {
@@ -13,13 +15,14 @@ AFRAME.registerComponent('distance-calc', {
     const eventEntity = activeText.closest('a-entity');
     if (!eventEntity) return;
 
-    const targetPos = new THREE.Vector3();
-    eventEntity.object3D.getWorldPosition(targetPos);
-
-    const cameraPos = new THREE.Vector3();
-    this.cameraEl.object3D.getWorldPosition(cameraPos);
-
-    const distance = cameraPos.distanceTo(targetPos).toFixed(2);
+    // Get position of the text (which stays where the box was)
+    eventEntity.object3D.getWorldPosition(this.targetPos);
+    
+    // Get camera position
+    this.cameraEl.object3D.getWorldPosition(this.cameraPos);
+    
+    // Calculate distance
+    const distance = this.cameraPos.distanceTo(this.targetPos).toFixed(2);
     this.arrowText.setAttribute('value', `Your event is this way\nDistance: ${distance}m`);
   }
 });
