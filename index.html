@@ -1,52 +1,37 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-      .event-text {
-        background-color: rgba(0, 0, 0, 0.7);
-        padding: 0.5em;
-        border-radius: 0.5em;
-      }
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
-      a-scene {
-        touch-action: manipulation;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR Campus Events</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="./src/scripts/event.js"></script>
     <script src="./src/scripts/arrow.js"></script>
     <script src="./src/scripts/distance.js"></script>
+    <style>
+      .event-text { background-color: rgba(0,0,0,0.7); padding: 0.5em; border-radius: 0.5em; }
+      body { margin: 0; overflow: hidden; }
+    </style>
   </head>
-
   <body>
     <a-scene
       vr-mode-ui="enabled: false"
-      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; maxDetectionRate: 30;"
-      renderer="antialias: true; alpha: true; precision: mediump;"
-      cursor="rayOrigin: mouse">
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="antialias: true; alpha: true;">
       
-      <a-light type="ambient" color="#FFFFFF"></a-light>
-
-      <a-camera id="cam" gps-camera rotation-reader>
+      <a-camera id="cam" gps-camera>
         <a-entity id="userPOV">
           <a-text
             distance-calc
             id="arrowTxt"
-            value="Look around for colored boxes\nTap to see event details"
+            value="Look around for events"
             width="2.5"
             align="center"
             color="white"
             position="0 -0.8 -1.5"
             visible="false">
           </a-text>
-
           <a-entity
             arrow-pointer
             id="arrow"
@@ -54,12 +39,7 @@
             position="0 -0.2 -0.5"
             visible="false">
             <a-triangle position="0 1.7 -3" color="yellow" depth="0.1">
-              <a-box
-                scale="0.2 0.8 0.4"
-                depth="0.1"
-                position="0 -0.89 0"
-                color="yellow">
-              </a-box>
+              <a-box scale="0.2 0.8 0.4" position="0 -0.89 0" color="yellow"></a-box>
             </a-triangle>
           </a-entity>
         </a-entity>
