@@ -1,4 +1,4 @@
-// Click handler component
+// Click handler
 AFRAME.registerComponent('clickable', {
     init: function() {
         this.el.addEventListener('click', () => {
@@ -11,81 +11,64 @@ AFRAME.registerComponent('clickable', {
             text.setAttribute('visible', !isTextVisible);
             marker.setAttribute('visible', isTextVisible);
             
-            arrow.setAttribute('visible', !isTextVisible);
-            distanceText.setAttribute('visible', !isTextVisible);
+            if(arrow && distanceText) {
+                arrow.setAttribute('visible', !isTextVisible);
+                distanceText.setAttribute('visible', !isTextVisible);
+            }
         });
     }
 });
 
-// Main event placement
+// Main events
 document.addEventListener("DOMContentLoaded", function() {
     const scene = document.querySelector('a-scene');
+    const status = document.getElementById('status');
     if (!scene) return;
 
     scene.addEventListener('loaded', function() {
         const camera = document.querySelector('a-camera');
         if (!camera) return;
 
-        function placeEvents() {
+        function initEvents() {
             const userPos = camera.getAttribute('gps-camera');
             if (!userPos || !userPos.latitude) {
-                setTimeout(placeEvents, 500);
+                status.textContent = "Waiting for GPS...";
+                setTimeout(initEvents, 500);
                 return;
             }
 
+            status.textContent = `GPS locked! (${userPos.latitude.toFixed(6)}, ${userPos.longitude.toFixed(6)})`;
+            const baseLat = userPos.latitude;
+            const baseLng = userPos.longitude;
             const offset = 0.0002; // ~20 meters
+
+            // Event data from Code Set 2 with GPS offsets
             const events = [
-                { id: 'north', color: '#4CAF50', name: 'Food Festival', desc: 'Free food for students!' },
-                { id: 'south', color: '#9C27B0', name: 'Dance Party', desc: 'Campus dance night!' },
-                { id: 'east', color: '#2196F3', name: 'Movie Night', desc: 'Outdoor cinema!' },
-                { id: 'west', color: '#FF9800', name: 'Ice Cream', desc: 'Free ice cream!' }
-            ];
-
-            events.forEach(event => {
-                const entity = document.createElement('a-entity');
-                entity.setAttribute('id', event.id + '-event');
-                
-                // Set position based on direction
-                let lat = userPos.latitude;
-                let lng = userPos.longitude;
-                if (event.id === 'north') lat += offset;
-                else if (event.id === 'south') lat -= offset;
-                else if (event.id === 'east') lng += offset;
-                else if (event.id === 'west') lng -= offset;
-                
-                entity.setAttribute('gps-entity-place', {
-                    latitude: lat,
-                    longitude: lng
-                });
-
-                // Create marker
-                const marker = document.createElement('a-box');
-                marker.setAttribute('class', 'event-marker');
-                marker.setAttribute('material', 'color: ' + event.color);
-                marker.setAttribute('scale', '5 5 5');
-                marker.setAttribute('position', '0 1.5 0');
-                marker.setAttribute('look-at', '[gps-camera]');
-                marker.setAttribute('clickable', '');
-                marker.setAttribute('visible', true);
-                entity.appendChild(marker);
-
-                // Create text
-                const text = document.createElement('a-text');
-                text.setAttribute('class', 'event-text');
-                text.setAttribute('value', event.name + '\n\n' + event.desc);
-                text.setAttribute('color', 'white');
-                text.setAttribute('align', 'center');
-                text.setAttribute('width', 15);
-                text.setAttribute('position', '0 2 0');
-                text.setAttribute('visible', false);
-                text.setAttribute('look-at', '[gps-camera]');
-                entity.appendChild(text);
-
-                scene.appendChild(entity);
-                console.log('Placed event at:', lat, lng);
-            });
-        }
-
-        placeEvents();
-    });
-});
+                {
+                    id: "north-event",
+                    name: "SPRING FOOD FESTIVAL",
+                    color: "#4CAF50",
+                    description: "Free food for all students!\n12PM-6PM\nLocation: Student Union",
+                    position: { latitude: baseLat + offset, longitude: baseLng }
+                },
+                {
+                    id: "south-event",
+                    name: "DANCE PARTY",
+                    color: "#9C27B0",
+                    description: "Campus dance night!\n8PM-12AM\nDJ: Campus Radio",
+                    position: { latitude: baseLat - offset, longitude: baseLng }
+                },
+                {
+                    id: "east-event",
+                    name: "MOVIE NIGHT",
+                    color: "#2196F3",
+                    description: "Outdoor cinema!\n7PM-11PM\nMovie: Avengers Endgame",
+                    position: { latitude: baseLat, longitude: baseLng + offset }
+                },
+                {
+                    id: "west-event",
+                    name: "ICE CREAM PARTY",
+                    color: "#FF9800",
+                    description: "Free ice cream!\n2PM-5PM\nFlavors: 10+ varieties",
+                    position: { latitude: baseLat, longitude: baseLng - offset }
+                }
