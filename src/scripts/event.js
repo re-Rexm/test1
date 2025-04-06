@@ -9,6 +9,8 @@ AFRAME.registerComponent('clickable', {
   }
 });
 
+window.activeEventEntity = null;
+
 document.addEventListener("DOMContentLoaded", function () {
   const baseLat = 39.786495;
   const baseLng = -84.068553;
@@ -57,7 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
         longitude: event.position.longitude
       });
 
-      // Create marker
       const marker = document.createElement('a-box');
       marker.setAttribute('class', 'event-marker');
       marker.setAttribute('material', `color: ${event.color}; shader: flat`);
@@ -68,7 +69,19 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.setAttribute('visible', true);
       eventEntity.appendChild(marker);
 
-      // Create text
+      eventEntity.originalGPS = {
+        latitude: event.position.latitude,
+        longitude: event.position.longitude
+      };
+
+      const textEntity = document.createElement('a-entity');
+      textEntity.setAttribute('id', `${event.id}-text`);
+      textEntity.setAttribute('gps-entity-place', {
+        latitude: event.position.latitude,
+        longitude: event.position.longitude
+      });
+      textEntity.setAttribute('visible', false);
+
       const text = document.createElement('a-text');
       text.setAttribute('class', 'event-text');
       text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -77,67 +90,54 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('width', 15);
       text.setAttribute('position', '0 2 0');
       text.setAttribute('scale', '2 2 2');
-      text.setAttribute('visible', false);
       text.setAttribute('look-at', '[gps-camera]');
       text.setAttribute('clickable', '');
-      eventEntity.appendChild(text);
-
-      // Save original GPS
-      eventEntity.originalGPS = {
-        latitude: event.position.latitude,
-        longitude: event.position.longitude
-      };
+      textEntity.appendChild(text);
 
       const handleClick = () => toggleEventDisplay(event.id);
       marker.addEventListener('click', handleClick);
-      text.addEventListener('click', handleClick);
+      textEntity.addEventListener('click', handleClick);
 
       scene.appendChild(eventEntity);
+      scene.appendChild(textEntity);
     });
   });
 
   function toggleEventDisplay(eventId) {
     const eventEntity = document.getElementById(eventId);
-    if (!eventEntity) return;
-
     const marker = eventEntity.querySelector('.event-marker');
-    const text = eventEntity.querySelector('.event-text');
+    const textEntity = document.getElementById(`${eventId}-text`);
     const arrow = document.getElementById('arrow');
     const arrowText = document.getElementById('arrowTxt');
 
     const isMarkerVisible = marker.getAttribute('visible') !== false;
 
     if (isMarkerVisible) {
-      // Show text only, don't move anything
       marker.setAttribute('visible', false);
-      text.setAttribute('visible', true);
-
-      // Show arrow and distance
+      textEntity.setAttribute('visible', true);
       if (arrow && arrowText) {
         arrow.setAttribute('visible', true);
         arrowText.setAttribute('visible', true);
       }
+      window.activeEventEntity = eventEntity;
     } else {
-      // Hide text, show marker again
-      text.setAttribute('visible', false);
+      textEntity.setAttribute('visible', false);
       marker.setAttribute('visible', true);
-
-      // Reset local position so GPS can update
       eventEntity.setAttribute('position', '0 0 0');
-
-      // Re-apply gps-entity-place
-      if (eventEntity.originalGPS) {
+      const gps = eventEntity.originalGPS;
+      eventEntity.removeAttribute('gps-entity-place');
+      setTimeout(() => {
         eventEntity.setAttribute('gps-entity-place', {
-          latitude: eventEntity.originalGPS.latitude,
-          longitude: eventEntity.originalGPS.longitude
+          latitude: gps.latitude,
+          longitude: gps.longitude
         });
-      }
+      }, 50);
 
-      // Hide arrow and text
       if (arrow && arrowText) {
         arrow.setAttribute('visible', false);
         arrowText.setAttribute('visible', false);
       }
+      window.activeEventEntity = null;
     }
   }
 });
