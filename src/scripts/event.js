@@ -1,54 +1,46 @@
-// Register clickable component
+// Clickable component
 AFRAME.registerComponent('clickable', {
   init: function () {
-    this.el.addEventListener('click', () => {
+    const handleClick = () => {
       const marker = this.el;
-      const eventEntity = this.el.parentElement;
-      const text = eventEntity.querySelector('.event-text');
+      const text = marker.parentElement.querySelector('.event-text');
+      const arrow = document.getElementById('arrow');
+      const arrowText = document.getElementById('arrowTxt');
       
-      if (text) {
-        const isTextVisible = text.getAttribute('visible');
-        text.setAttribute('visible', !isTextVisible);
-        marker.setAttribute('visible', isTextVisible);
-
-        // Toggle arrow/distance text
-        const arrow = document.getElementById('arrow');
-        const arrowText = document.getElementById('arrowTxt');
-        if (arrow && arrowText) {
-          arrow.setAttribute('visible', !isTextVisible);
-          arrowText.setAttribute('visible', !isTextVisible);
-        }
+      const isTextVisible = text.getAttribute('visible');
+      text.setAttribute('visible', !isTextVisible);
+      marker.setAttribute('visible', isTextVisible);
+      
+      if (arrow && arrowText) {
+        arrow.setAttribute('visible', !isTextVisible);
+        arrowText.setAttribute('visible', !isTextVisible);
       }
+    };
+    
+    this.el.addEventListener('click', handleClick);
+    this.el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleClick();
     });
   }
 });
 
 // Main event initialization
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
   const scene = document.querySelector('a-scene');
-  if (!scene) {
-    console.error('Scene not found');
-    return;
-  }
+  if (!scene) return;
 
-  // Wait for both scene and camera to be ready
-  scene.addEventListener('loaded', function () {
+  scene.addEventListener('loaded', function() {
     const camera = document.querySelector('a-camera');
-    if (!camera) {
-      console.error('Camera not found');
-      return;
-    }
+    if (!camera) return;
 
-    // Function to initialize events once we have GPS
     function initEvents() {
       const userPos = camera.getAttribute('gps-camera');
       if (!userPos || !userPos.latitude) {
-        console.log('Waiting for GPS coordinates...');
         setTimeout(initEvents, 500);
         return;
       }
 
-      console.log('Initializing events at:', userPos);
       const baseLat = userPos.latitude;
       const baseLng = userPos.longitude;
       const offset = 0.0002; // ~20 meters
@@ -103,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
         marker.setAttribute('visible', true);
         entity.appendChild(marker);
 
-        // Create text label
+        // Create text
         const text = document.createElement('a-text');
         text.setAttribute('class', 'event-text');
         text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -117,11 +109,9 @@ document.addEventListener("DOMContentLoaded", function () {
         entity.appendChild(text);
 
         scene.appendChild(entity);
-        console.log(`Added event at ${event.position.latitude}, ${event.position.longitude}`);
       });
     }
 
-    // Start initialization
     initEvents();
   });
 });
