@@ -15,13 +15,11 @@ AFRAME.registerComponent('distance-calc', {
     const eventEntity = activeText.closest('a-entity');
     if (!eventEntity) return;
 
-    // Get position of the text (which stays where the box was)
+    // Get positions
     eventEntity.object3D.getWorldPosition(this.targetPos);
-    
-    // Get camera position
     this.cameraEl.object3D.getWorldPosition(this.cameraPos);
-    
-    // Calculate distance
+
+    // Calculate distance (in meters)
     const distance = this.cameraPos.distanceTo(this.targetPos).toFixed(2);
     this.arrowText.setAttribute('value', `Your event is this way\nDistance: ${distance}m`);
   }
