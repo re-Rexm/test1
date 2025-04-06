@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   const scene = document.querySelector('a-scene');
-  if (!scene) return;
 
   scene.addEventListener('loaded', function () {
     events.forEach(event => {
@@ -104,39 +103,38 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function toggleEventDisplay(eventId) {
-    const eventEntity = document.getElementById(eventId);
-    const marker = eventEntity.querySelector('.event-marker');
-    const textEntity = document.getElementById(`${eventId}-text`);
+    const selectedEntity = document.getElementById(eventId);
+    const selectedMarker = selectedEntity.querySelector('.event-marker');
+    const selectedText = document.getElementById(`${eventId}-text`);
     const arrow = document.getElementById('arrow');
     const arrowText = document.getElementById('arrowTxt');
 
-    const isMarkerVisible = marker.getAttribute('visible') !== false;
+    const isExpanding = selectedMarker.getAttribute('visible') === true;
 
-    if (isMarkerVisible) {
-      marker.setAttribute('visible', false);
-      textEntity.setAttribute('visible', true);
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', true);
-        arrowText.setAttribute('visible', true);
-      }
-      window.activeEventEntity = eventEntity;
+    // Reset all other boxes/texts
+    document.querySelectorAll('.event-marker').forEach(marker => marker.setAttribute('visible', true));
+    document.querySelectorAll('.event-text').forEach(text => text.setAttribute('visible', false));
+
+    if (isExpanding) {
+      // Show text only for this one
+      selectedMarker.setAttribute('visible', false);
+      selectedText.setAttribute('visible', true);
+      selectedText.querySelector('.event-text').setAttribute('visible', true);
+
+      // Show arrow and text
+      arrow.setAttribute('visible', true);
+      arrowText.setAttribute('visible', true);
+
+      window.activeEventEntity = selectedEntity;
     } else {
-      textEntity.setAttribute('visible', false);
-      marker.setAttribute('visible', true);
-      eventEntity.setAttribute('position', '0 0 0');
-      const gps = eventEntity.originalGPS;
-      eventEntity.removeAttribute('gps-entity-place');
-      setTimeout(() => {
-        eventEntity.setAttribute('gps-entity-place', {
-          latitude: gps.latitude,
-          longitude: gps.longitude
-        });
-      }, 50);
+      // Revert back to marker view
+      selectedText.setAttribute('visible', false);
+      selectedMarker.setAttribute('visible', true);
 
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', false);
-        arrowText.setAttribute('visible', false);
-      }
+      // Hide arrow/text
+      arrow.setAttribute('visible', false);
+      arrowText.setAttribute('visible', false);
+
       window.activeEventEntity = null;
     }
   }
