@@ -3,8 +3,7 @@ AFRAME.registerComponent('arrow-pointer', {
     this.arrowEl = this.el;
     this.cameraEl = document.querySelector('a-camera');
     this.targetPos = new THREE.Vector3();
-    this.cameraWorldPos = new THREE.Vector3();
-    this.direction = new THREE.Vector3();
+    this.cameraPos = new THREE.Vector3();
   },
 
   tick: function () {
@@ -16,21 +15,22 @@ AFRAME.registerComponent('arrow-pointer', {
     const eventEntity = activeText.closest('a-entity');
     if (!eventEntity) return;
 
-    // Get the current position of the text (which is now relative to camera)
+    // Get world position of the event
     eventEntity.object3D.getWorldPosition(this.targetPos);
-    
-    // Get camera position
-    this.cameraEl.object3D.getWorldPosition(this.cameraWorldPos);
-    
-    // Calculate direction vector
-    this.direction.subVectors(this.targetPos, this.cameraWorldPos).normalize();
-    
-    // Calculate angle and rotate arrow
-    const angle = Math.atan2(this.direction.x, this.direction.z);
+    this.cameraEl.object3D.getWorldPosition(this.cameraPos);
+
+    // Calculate direction vector (camera to target)
+    const direction = new THREE.Vector3().subVectors(this.targetPos, this.cameraPos).normalize();
+
+    // Convert to camera local space
+    this.cameraEl.object3D.worldToLocal(direction);
+
+    // Calculate angle (rotate around Y-axis)
+    const angle = Math.atan2(direction.x, direction.z);
     this.arrowEl.setAttribute('rotation', {
       x: 0,
-      y: THREE.Math.radToDeg(angle),
-      z: 0
+      y: 0,
+      z: THREE.Math.radToDeg(angle)
     });
   }
 });
