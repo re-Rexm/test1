@@ -16,7 +16,7 @@ AFRAME.registerComponent('arrow-pointer', {
     const eventEntity = activeText.closest('a-entity');
     if (!eventEntity) return;
 
-    // Get world position of the text (which stays where the box was)
+    // Get the current position of the text (which is now relative to camera)
     eventEntity.object3D.getWorldPosition(this.targetPos);
     
     // Get camera position
@@ -25,15 +25,12 @@ AFRAME.registerComponent('arrow-pointer', {
     // Calculate direction vector
     this.direction.subVectors(this.targetPos, this.cameraWorldPos).normalize();
     
-    // Convert to camera local space
-    this.cameraEl.object3D.worldToLocal(this.direction);
-    
     // Calculate angle and rotate arrow
     const angle = Math.atan2(this.direction.x, this.direction.z);
     this.arrowEl.setAttribute('rotation', {
       x: 0,
-      y: 0,
-      z: THREE.Math.radToDeg(angle)
+      y: THREE.Math.radToDeg(angle),
+      z: 0
     });
   }
 });
