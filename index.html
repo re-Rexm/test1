@@ -1,36 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR Box Test</title>
+    <title>GPS AR Test</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #loading { 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            color: white; 
+            font-family: Arial;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-    <a-scene 
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="antialias: true; alpha: true;">
-        
-        <a-camera gps-camera></a-camera>
+    <div id="loading">Waiting for GPS...</div>
+    <a-scene vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
+        <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const scene = document.querySelector('a-scene');
-            
-            scene.addEventListener('loaded', function() {
-                // Create a test box 20m north of user
-                const box = document.createElement('a-box');
-                box.setAttribute('color', 'red');
-                box.setAttribute('scale', '5 5 5');
-                box.setAttribute('gps-entity-place', {
-                    latitude: 0.0002,  // ~20m north
-                    longitude: 0
-                });
-                scene.appendChild(box);
-                console.log("Added test box");
+        const scene = document.querySelector('a-scene');
+        const loading = document.getElementById('loading');
+        
+        // Add a test box 20m north of user
+        function addTestBox(lat, lng) {
+            const box = document.createElement('a-box');
+            box.setAttribute('color', 'red');
+            box.setAttribute('scale', '5 5 5');
+            box.setAttribute('gps-entity-place', {
+                latitude: lat + 0.0002, // ~20m north
+                longitude: lng
             });
+            scene.appendChild(box);
+            loading.textContent = "GPS connected! Look for red box (20m north)";
+            console.log("Added box at:", lat + 0.0002, lng);
+        }
+
+        // Wait for GPS
+        scene.addEventListener('loaded', () => {
+            const camera = document.querySelector('a-camera');
+            
+            function checkGPS() {
+                const pos = camera.getAttribute('gps-camera');
+                if (pos && pos.latitude) {
+                    addTestBox(pos.latitude, pos.longitude);
+                } else {
+                    setTimeout(checkGPS, 500);
+                }
+            }
+            
+            checkGPS();
         });
     </script>
 </body>
