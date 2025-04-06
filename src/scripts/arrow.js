@@ -8,15 +8,9 @@ AFRAME.registerComponent('arrow-pointer', {
   },
 
   tick: function () {
-    if (!this.cameraEl || this.arrowEl.getAttribute('visible') !== true) return;
+    if (!this.cameraEl || !window.activeEventEntity || this.arrowEl.getAttribute('visible') !== true) return;
 
-    const activeEvent = Array.from(document.querySelectorAll('a-entity')).find(ent => {
-      const txt = ent.querySelector('.event-text');
-      return txt && txt.getAttribute('visible') === true;
-    });
-
-    if (!activeEvent) return;
-
+    const activeEvent = window.activeEventEntity;
     activeEvent.object3D.getWorldPosition(this.targetPos);
     this.cameraEl.object3D.getWorldPosition(this.cameraWorldPos);
     this.direction.subVectors(this.targetPos, this.cameraWorldPos).normalize();
