@@ -9,8 +9,6 @@ AFRAME.registerComponent('clickable', {
   }
 });
 
-window.activeEventEntity = null;
-
 document.addEventListener("DOMContentLoaded", function () {
   const baseLat = 39.786495;
   const baseLng = -84.068553;
@@ -48,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   const scene = document.querySelector('a-scene');
+  if (!scene) return;
 
   scene.addEventListener('loaded', function () {
     events.forEach(event => {
@@ -58,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         longitude: event.position.longitude
       });
 
+      // Create marker with proper color
       const marker = document.createElement('a-box');
       marker.setAttribute('class', 'event-marker');
       marker.setAttribute('material', `color: ${event.color}; shader: flat`);
@@ -68,19 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.setAttribute('visible', true);
       eventEntity.appendChild(marker);
 
-      eventEntity.originalGPS = {
-        latitude: event.position.latitude,
-        longitude: event.position.longitude
-      };
-
-      const textEntity = document.createElement('a-entity');
-      textEntity.setAttribute('id', `${event.id}-text`);
-      textEntity.setAttribute('gps-entity-place', {
-        latitude: event.position.latitude,
-        longitude: event.position.longitude
-      });
-      textEntity.setAttribute('visible', false);
-
+      // Create text label - initially hidden
       const text = document.createElement('a-text');
       text.setAttribute('class', 'event-text');
       text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -89,53 +77,90 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('width', 15);
       text.setAttribute('position', '0 2 0');
       text.setAttribute('scale', '2 2 2');
+      text.setAttribute('visible', false);
       text.setAttribute('look-at', '[gps-camera]');
       text.setAttribute('clickable', '');
-      textEntity.appendChild(text);
+      eventEntity.appendChild(text);
 
+      // Store original position
+      eventEntity.originalPosition = null;
+
+      // Add event listeners
       const handleClick = () => toggleEventDisplay(event.id);
       marker.addEventListener('click', handleClick);
-      textEntity.addEventListener('click', handleClick);
+      text.addEventListener('click', handleClick);
 
       scene.appendChild(eventEntity);
-      scene.appendChild(textEntity);
     });
   });
 
   function toggleEventDisplay(eventId) {
-    const selectedEntity = document.getElementById(eventId);
-    const selectedMarker = selectedEntity.querySelector('.event-marker');
-    const selectedText = document.getElementById(`${eventId}-text`);
-    const arrow = document.getElementById('arrow');
-    const arrowText = document.getElementById('arrowTxt');
+  const eventEntity = document.getElementById(eventId);
+  if (!eventEntity) return;
 
-    const isExpanding = selectedMarker.getAttribute('visible') === true;
+  const marker = eventEntity.querySelector('.event-marker');
+  const text = eventEntity.querySelector('.event-text');
+  const arrow = document.getElementById('arrow');
+  const arrowText = document.getElementById('arrowTxt');
 
-    // Reset all other boxes/texts
-    document.querySelectorAll('.event-marker').forEach(marker => marker.setAttribute('visible', true));
-    document.querySelectorAll('.event-text').forEach(text => text.setAttribute('visible', false));
+  const isMarkerVisible = marker.getAttribute('visible') !== false;
 
-    if (isExpanding) {
-      // Show text only for this one
-      selectedMarker.setAttribute('visible', false);
-      selectedText.setAttribute('visible', true);
-      selectedText.querySelector('.event-text').setAttribute('visible', true);
+  if (isMarkerVisible) {
+    // Store original position before moving
+    if (!eventEntity.originalPosition) {
+      const markerWorldPos = new THREE.Vector3();
+      marker.object3D.getWorldPosition(markerWorldPos);
+      eventEntity.originalPosition = markerWorldPos.clone();
+      eventEntity.originalGPS = {
+        latitude: eventEntity.getAttribute('gps-entity-place').latitude,
+        longitude: eventEntity.getAttribute('gps-entity-place').longitude
+      };
+    }
 
-      // Show arrow and text
+    // Switch to text view
+    marker.setAttribute('visible', false);
+    text.setAttribute('visible', true);
+    
+    // Position text in front of camera but maintain original direction
+    const camera = document.querySelector('a-camera');
+    const cameraWorldPos = new THREE.Vector3();
+    camera.object3D.getWorldPosition(cameraWorldPos);
+    
+    // Calculate direction from camera to original position
+    const direction = new THREE.Vector3();
+    direction.subVectors(eventEntity.originalPosition, cameraWorldPos).normalize();
+    
+    // Position text 5 meters in that direction
+    const textPosition = new THREE.Vector3();
+    textPosition.copy(direction).multiplyScalar(5).add(cameraWorldPos);
+    
+    // Convert to local space relative to scene
+    eventEntity.setAttribute('position', textPosition);
+    eventEntity.removeAttribute('gps-entity-place');
+
+    // Show arrow and text
+    if (arrow && arrowText) {
       arrow.setAttribute('visible', true);
       arrowText.setAttribute('visible', true);
+    }
+  } else {
+    // Switch back to marker view
+    text.setAttribute('visible', false);
+    marker.setAttribute('visible', true);
 
-      window.activeEventEntity = selectedEntity;
-    } else {
-      // Revert back to marker view
-      selectedText.setAttribute('visible', false);
-      selectedMarker.setAttribute('visible', true);
+    // Restore GPS position
+    if (eventEntity.originalGPS) {
+      eventEntity.setAttribute('gps-entity-place', {
+        latitude: eventEntity.originalGPS.latitude,
+        longitude: eventEntity.originalGPS.longitude
+      });
+    }
 
-      // Hide arrow/text
+    // Hide arrow and text
+    if (arrow && arrowText) {
       arrow.setAttribute('visible', false);
       arrowText.setAttribute('visible', false);
-
-      window.activeEventEntity = null;
     }
   }
+}
 });
