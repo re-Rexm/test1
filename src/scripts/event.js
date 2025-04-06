@@ -95,65 +95,72 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function toggleEventDisplay(eventId) {
-    const eventEntity = document.getElementById(eventId);
-    if (!eventEntity) return;
+  const eventEntity = document.getElementById(eventId);
+  if (!eventEntity) return;
 
-    const marker = eventEntity.querySelector('.event-marker');
-    const text = eventEntity.querySelector('.event-text');
-    const arrow = document.getElementById('arrow');
-    const arrowText = document.getElementById('arrowTxt');
+  const marker = eventEntity.querySelector('.event-marker');
+  const text = eventEntity.querySelector('.event-text');
+  const arrow = document.getElementById('arrow');
+  const arrowText = document.getElementById('arrowTxt');
 
-    const isMarkerVisible = marker.getAttribute('visible') !== false;
+  const isMarkerVisible = marker.getAttribute('visible') !== false;
 
-    if (isMarkerVisible) {
-      // Store original position before moving
-      if (!eventEntity.originalPosition) {
-        eventEntity.originalPosition = eventEntity.getAttribute('position');
-      }
-
-      // Switch to text view
-      marker.setAttribute('visible', false);
-      text.setAttribute('visible', true);
-      
-      // Keep text at the same world position as the marker was
+  if (isMarkerVisible) {
+    // Store original position before moving
+    if (!eventEntity.originalPosition) {
       const markerWorldPos = new THREE.Vector3();
       marker.object3D.getWorldPosition(markerWorldPos);
-      
-      const cameraWorldPos = new THREE.Vector3();
-      document.querySelector('a-camera').object3D.getWorldPosition(cameraWorldPos);
-      
-      // Calculate position relative to camera
-      const relativePos = new THREE.Vector3();
-      relativePos.subVectors(markerWorldPos, cameraWorldPos);
-      relativePos.normalize().multiplyScalar(5); // 5 units in front of camera
-      
-      eventEntity.setAttribute('position', relativePos);
-      eventEntity.removeAttribute('gps-entity-place');
+      eventEntity.originalPosition = markerWorldPos.clone();
+      eventEntity.originalGPS = {
+        latitude: eventEntity.getAttribute('gps-entity-place').latitude,
+        longitude: eventEntity.getAttribute('gps-entity-place').longitude
+      };
+    }
 
-      // Show arrow and text
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', true);
-        arrowText.setAttribute('visible', true);
-      }
-    } else {
-      // Switch back to marker view
-      text.setAttribute('visible', false);
-      marker.setAttribute('visible', true);
+    // Switch to text view
+    marker.setAttribute('visible', false);
+    text.setAttribute('visible', true);
+    
+    // Position text in front of camera but maintain original direction
+    const camera = document.querySelector('a-camera');
+    const cameraWorldPos = new THREE.Vector3();
+    camera.object3D.getWorldPosition(cameraWorldPos);
+    
+    // Calculate direction from camera to original position
+    const direction = new THREE.Vector3();
+    direction.subVectors(eventEntity.originalPosition, cameraWorldPos).normalize();
+    
+    // Position text 5 meters in that direction
+    const textPosition = new THREE.Vector3();
+    textPosition.copy(direction).multiplyScalar(5).add(cameraWorldPos);
+    
+    // Convert to local space relative to scene
+    eventEntity.setAttribute('position', textPosition);
+    eventEntity.removeAttribute('gps-entity-place');
 
-      // Restore GPS position
-      const eventData = events.find(e => e.id === eventId);
-      if (eventData) {
-        eventEntity.setAttribute('gps-entity-place', {
-          latitude: eventData.position.latitude,
-          longitude: eventData.position.longitude
-        });
-      }
+    // Show arrow and text
+    if (arrow && arrowText) {
+      arrow.setAttribute('visible', true);
+      arrowText.setAttribute('visible', true);
+    }
+  } else {
+    // Switch back to marker view
+    text.setAttribute('visible', false);
+    marker.setAttribute('visible', true);
 
-      // Hide arrow and text
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', false);
-        arrowText.setAttribute('visible', false);
-      }
+    // Restore GPS position
+    if (eventEntity.originalGPS) {
+      eventEntity.setAttribute('gps-entity-place', {
+        latitude: eventEntity.originalGPS.latitude,
+        longitude: eventEntity.originalGPS.longitude
+      });
+    }
+
+    // Hide arrow and text
+    if (arrow && arrowText) {
+      arrow.setAttribute('visible', false);
+      arrowText.setAttribute('visible', false);
     }
   }
+}
 });
