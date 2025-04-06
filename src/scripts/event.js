@@ -72,3 +72,40 @@ document.addEventListener("DOMContentLoaded", function() {
                     description: "Free ice cream!\n2PM-5PM\nFlavors: 10+ varieties",
                     position: { latitude: baseLat, longitude: baseLng - offset }
                 }
+            ];
+
+            events.forEach(event => {
+                const entity = document.createElement('a-entity');
+                entity.setAttribute('id', event.id);
+                entity.setAttribute('gps-entity-place', event.position);
+
+                // Box marker
+                const marker = document.createElement('a-box');
+                marker.setAttribute('material', 'color', event.color);
+                marker.setAttribute('scale', '5 5 5');
+                marker.setAttribute('position', '0 1.5 0');
+                marker.setAttribute('look-at', '[gps-camera]');
+                marker.setAttribute('clickable', '');
+                marker.setAttribute('visible', true);
+                entity.appendChild(marker);
+
+                // Event text
+                const text = document.createElement('a-text');
+                text.setAttribute('class', 'event-text');
+                text.setAttribute('value', `${event.name}\n\n${event.description}`);
+                text.setAttribute('color', 'white');
+                text.setAttribute('align', 'center');
+                text.setAttribute('width', 15);
+                text.setAttribute('position', '0 2 0');
+                text.setAttribute('visible', false);
+                text.setAttribute('look-at', '[gps-camera]');
+                entity.appendChild(text);
+
+                scene.appendChild(entity);
+                console.log(`Added ${event.id} at ${event.position.latitude}, ${event.position.longitude}`);
+            });
+        }
+
+        initEvents();
+    });
+});
