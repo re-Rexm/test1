@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         longitude: event.position.longitude
       });
 
-      // Create marker with proper color
+      // Create marker
       const marker = document.createElement('a-box');
       marker.setAttribute('class', 'event-marker');
       marker.setAttribute('material', `color: ${event.color}; shader: flat`);
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.setAttribute('visible', true);
       eventEntity.appendChild(marker);
 
-      // Create text label - initially hidden
+      // Create text
       const text = document.createElement('a-text');
       text.setAttribute('class', 'event-text');
       text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -82,13 +82,12 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('clickable', '');
       eventEntity.appendChild(text);
 
-      // Store original GPS position
+      // Save original GPS
       eventEntity.originalGPS = {
         latitude: event.position.latitude,
         longitude: event.position.longitude
       };
 
-      // Add event listeners
       const handleClick = () => toggleEventDisplay(event.id);
       marker.addEventListener('click', handleClick);
       text.addEventListener('click', handleClick);
@@ -109,56 +108,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const isMarkerVisible = marker.getAttribute('visible') !== false;
 
     if (isMarkerVisible) {
-      // Switch to text view
+      // Show text only, don't move anything
       marker.setAttribute('visible', false);
       text.setAttribute('visible', true);
-      
-      // Position text in front of camera
-      const camera = document.querySelector('a-camera');
-      const cameraWorldPos = new THREE.Vector3();
-      camera.object3D.getWorldPosition(cameraWorldPos);
-      
-      // Calculate direction from camera to marker
-      const markerWorldPos = new THREE.Vector3();
-      marker.object3D.getWorldPosition(markerWorldPos);
-      const direction = new THREE.Vector3();
-      direction.subVectors(markerWorldPos, cameraWorldPos).normalize();
-      
-      // Position text 5 meters in front of camera
-      const textPosition = new THREE.Vector3();
-      textPosition.copy(direction).multiplyScalar(5).add(cameraWorldPos);
-      
-      // Convert to local space relative to scene
-      eventEntity.setAttribute('position', textPosition);
-      eventEntity.removeAttribute('gps-entity-place');
 
-      // Show arrow and text
+      // Show arrow and distance
       if (arrow && arrowText) {
         arrow.setAttribute('visible', true);
         arrowText.setAttribute('visible', true);
       }
     } else {
-      // Switch back to marker view
+      // Hide text, show marker again
       text.setAttribute('visible', false);
       marker.setAttribute('visible', true);
 
-      // Recreate the entity to properly restore GPS position
-      const newEntity = eventEntity.cloneNode(true);
-      newEntity.setAttribute('gps-entity-place', {
-        latitude: eventEntity.originalGPS.latitude,
-        longitude: eventEntity.originalGPS.longitude
-      });
-      newEntity.removeAttribute('position');
-      
-      // Restore event listeners
-      const newMarker = newEntity.querySelector('.event-marker');
-      const newText = newEntity.querySelector('.event-text');
-      const handleClick = () => toggleEventDisplay(eventId);
-      newMarker.addEventListener('click', handleClick);
-      newText.addEventListener('click', handleClick);
-      
-      scene.removeChild(eventEntity);
-      scene.appendChild(newEntity);
+      // Reset local position so GPS can update
+      eventEntity.setAttribute('position', '0 0 0');
+
+      // Re-apply gps-entity-place
+      if (eventEntity.originalGPS) {
+        eventEntity.setAttribute('gps-entity-place', {
+          latitude: eventEntity.originalGPS.latitude,
+          longitude: eventEntity.originalGPS.longitude
+        });
+      }
 
       // Hide arrow and text
       if (arrow && arrowText) {
