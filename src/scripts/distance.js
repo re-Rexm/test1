@@ -7,12 +7,12 @@ AFRAME.registerComponent('distance-calc', {
   },
 
   tick: function () {
-    if (this.arrowText.getAttribute('visible') !== true) return;
+    if (!this.cameraEl || this.arrowText.getAttribute('visible') !== true) return;
 
     const activeText = document.querySelector('.event-text[visible="true"]');
     if (!activeText) return;
 
-    const eventEntity = activeText.closest('a-entity');
+    const eventEntity = activeText.parentElement;
     if (!eventEntity) return;
 
     // Get positions
@@ -21,6 +21,6 @@ AFRAME.registerComponent('distance-calc', {
 
     // Calculate distance (in meters)
     const distance = this.cameraPos.distanceTo(this.targetPos).toFixed(2);
-    this.arrowText.setAttribute('value', `Your event is this way\nDistance: ${distance}m`);
+    this.arrowText.setAttribute('value', `Distance: ${distance}m`);
   }
 });
