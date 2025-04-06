@@ -2,15 +2,13 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Campus Events</title>
+    <title>AR Events</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="./src/scripts/event.js"></script>
-    <script src="./src/scripts/arrow.js"></script>
-    <script src="./src/scripts/distance.js"></script>
+    <!-- Use stable AR.js build -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
     <style>
-      .event-text { background-color: rgba(0,0,0,0.7); padding: 0.5em; border-radius: 0.5em; }
+      .event-text { background: rgba(0, 0, 0, 0.7); padding: 0.5em; border-radius: 0.5em; }
       body { margin: 0; overflow: hidden; }
     </style>
   </head>
@@ -19,8 +17,10 @@
       vr-mode-ui="enabled: false"
       arjs="sourceType: webcam; debugUIEnabled: false;"
       renderer="antialias: true; alpha: true;">
-      
-      <a-camera id="cam" gps-camera>
+
+      <!-- Camera with GPS -->
+      <a-camera id="cam" gps-camera rotation-reader>
+        <!-- Arrow and Distance Text -->
         <a-entity id="userPOV">
           <a-text
             distance-calc
@@ -44,6 +44,14 @@
           </a-entity>
         </a-entity>
       </a-camera>
+
+      <!-- Ambient Light (for better visibility) -->
+      <a-light type="ambient" color="#FFFFFF"></a-light>
     </a-scene>
+
+    <!-- Load scripts AFTER the scene -->
+    <script src="./src/scripts/event.js"></script>
+    <script src="./src/scripts/arrow.js"></script>
+    <script src="./src/scripts/distance.js"></script>
   </body>
 </html>
