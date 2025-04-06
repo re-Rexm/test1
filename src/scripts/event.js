@@ -1,111 +1,170 @@
-// Click handler
 AFRAME.registerComponent('clickable', {
-    init: function() {
-        this.el.addEventListener('click', () => {
-            const marker = this.el;
-            const text = marker.parentElement.querySelector('.event-text');
-            const arrow = document.getElementById('arrow');
-            const distanceText = document.getElementById('distanceText');
-            
-            const isTextVisible = text.getAttribute('visible');
-            text.setAttribute('visible', !isTextVisible);
-            marker.setAttribute('visible', isTextVisible);
-            
-            if(arrow && distanceText) {
-                arrow.setAttribute('visible', !isTextVisible);
-                distanceText.setAttribute('visible', !isTextVisible);
-            }
-        });
-    }
+  init: function () {
+    const handleClick = () => this.el.emit('click');
+    this.el.addEventListener('click', handleClick);
+    this.el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleClick();
+    });
+  }
 });
 
-// Main events
-document.addEventListener("DOMContentLoaded", function() {
-    const scene = document.querySelector('a-scene');
-    const status = document.getElementById('status');
-    if (!scene) return;
+document.addEventListener("DOMContentLoaded", function () {
+  const baseLat = 39.786495;
+  const baseLng = -84.068553;
+  const offset = 0.0002;
 
-    scene.addEventListener('loaded', function() {
-        const camera = document.querySelector('a-camera');
-        if (!camera) return;
+  const events = [
+    {
+      id: "north-event",
+      name: "SPRING FOOD FESTIVAL",
+      position: { latitude: baseLat + offset, longitude: baseLng },
+      color: "#4CAF50",
+      description: "Free food for all students!\n12PM-6PM\nLocation: Student Union"
+    },
+    {
+      id: "south-event",
+      name: "DANCE PARTY",
+      position: { latitude: baseLat - offset, longitude: baseLng },
+      color: "#9C27B0",
+      description: "Campus dance night!\n8PM-12AM\nDJ: Campus Radio"
+    },
+    {
+      id: "east-event",
+      name: "MOVIE NIGHT",
+      position: { latitude: baseLat, longitude: baseLng + offset },
+      color: "#2196F3",
+      description: "Outdoor cinema!\n7PM-11PM\nMovie: Avengers Endgame"
+    },
+    {
+      id: "west-event",
+      name: "ICE CREAM PARTY",
+      position: { latitude: baseLat, longitude: baseLng - offset },
+      color: "#FF9800",
+      description: "Free ice cream!\n2PM-5PM\nFlavors: 10+ varieties"
+    }
+  ];
 
-        function initEvents() {
-            const userPos = camera.getAttribute('gps-camera');
-            if (!userPos || !userPos.latitude) {
-                status.textContent = "Waiting for GPS...";
-                setTimeout(initEvents, 500);
-                return;
-            }
+  const scene = document.querySelector('a-scene');
+  if (!scene) return;
 
-            status.textContent = `GPS locked! (${userPos.latitude.toFixed(6)}, ${userPos.longitude.toFixed(6)})`;
-            const baseLat = userPos.latitude;
-            const baseLng = userPos.longitude;
-            const offset = 0.0002; // ~20 meters
+  scene.addEventListener('loaded', function () {
+    events.forEach(event => {
+      const eventEntity = document.createElement('a-entity');
+      eventEntity.setAttribute('id', event.id);
+      eventEntity.setAttribute('gps-entity-place', {
+        latitude: event.position.latitude,
+        longitude: event.position.longitude
+      });
 
-            // Event data from Code Set 2 with GPS offsets
-            const events = [
-                {
-                    id: "north-event",
-                    name: "SPRING FOOD FESTIVAL",
-                    color: "#4CAF50",
-                    description: "Free food for all students!\n12PM-6PM\nLocation: Student Union",
-                    position: { latitude: baseLat + offset, longitude: baseLng }
-                },
-                {
-                    id: "south-event",
-                    name: "DANCE PARTY",
-                    color: "#9C27B0",
-                    description: "Campus dance night!\n8PM-12AM\nDJ: Campus Radio",
-                    position: { latitude: baseLat - offset, longitude: baseLng }
-                },
-                {
-                    id: "east-event",
-                    name: "MOVIE NIGHT",
-                    color: "#2196F3",
-                    description: "Outdoor cinema!\n7PM-11PM\nMovie: Avengers Endgame",
-                    position: { latitude: baseLat, longitude: baseLng + offset }
-                },
-                {
-                    id: "west-event",
-                    name: "ICE CREAM PARTY",
-                    color: "#FF9800",
-                    description: "Free ice cream!\n2PM-5PM\nFlavors: 10+ varieties",
-                    position: { latitude: baseLat, longitude: baseLng - offset }
-                }
-            ];
+      // Create marker with proper color
+      const marker = document.createElement('a-box');
+      marker.setAttribute('class', 'event-marker');
+      marker.setAttribute('material', `color: ${event.color}; shader: flat`);
+      marker.setAttribute('scale', '5 5 5');
+      marker.setAttribute('position', '0 1.5 0');
+      marker.setAttribute('look-at', '[gps-camera]');
+      marker.setAttribute('clickable', '');
+      marker.setAttribute('visible', true);
+      eventEntity.appendChild(marker);
 
-            events.forEach(event => {
-                const entity = document.createElement('a-entity');
-                entity.setAttribute('id', event.id);
-                entity.setAttribute('gps-entity-place', event.position);
+      // Create text label - initially hidden
+      const text = document.createElement('a-text');
+      text.setAttribute('class', 'event-text');
+      text.setAttribute('value', `${event.name}\n\n${event.description}`);
+      text.setAttribute('color', 'white');
+      text.setAttribute('align', 'center');
+      text.setAttribute('width', 15);
+      text.setAttribute('position', '0 2 0');
+      text.setAttribute('scale', '2 2 2');
+      text.setAttribute('visible', false);
+      text.setAttribute('look-at', '[gps-camera]');
+      text.setAttribute('clickable', '');
+      eventEntity.appendChild(text);
 
-                // Box marker
-                const marker = document.createElement('a-box');
-                marker.setAttribute('material', 'color', event.color);
-                marker.setAttribute('scale', '5 5 5');
-                marker.setAttribute('position', '0 1.5 0');
-                marker.setAttribute('look-at', '[gps-camera]');
-                marker.setAttribute('clickable', '');
-                marker.setAttribute('visible', true);
-                entity.appendChild(marker);
+      // Store original GPS position
+      eventEntity.originalGPS = {
+        latitude: event.position.latitude,
+        longitude: event.position.longitude
+      };
 
-                // Event text
-                const text = document.createElement('a-text');
-                text.setAttribute('class', 'event-text');
-                text.setAttribute('value', `${event.name}\n\n${event.description}`);
-                text.setAttribute('color', 'white');
-                text.setAttribute('align', 'center');
-                text.setAttribute('width', 15);
-                text.setAttribute('position', '0 2 0');
-                text.setAttribute('visible', false);
-                text.setAttribute('look-at', '[gps-camera]');
-                entity.appendChild(text);
+      // Add event listeners
+      const handleClick = () => toggleEventDisplay(event.id);
+      marker.addEventListener('click', handleClick);
+      text.addEventListener('click', handleClick);
 
-                scene.appendChild(entity);
-                console.log(`Added ${event.id} at ${event.position.latitude}, ${event.position.longitude}`);
-            });
-        }
-
-        initEvents();
+      scene.appendChild(eventEntity);
     });
+  });
+
+  function toggleEventDisplay(eventId) {
+    const eventEntity = document.getElementById(eventId);
+    if (!eventEntity) return;
+
+    const marker = eventEntity.querySelector('.event-marker');
+    const text = eventEntity.querySelector('.event-text');
+    const arrow = document.getElementById('arrow');
+    const arrowText = document.getElementById('arrowTxt');
+
+    const isMarkerVisible = marker.getAttribute('visible') !== false;
+
+    if (isMarkerVisible) {
+      // Switch to text view
+      marker.setAttribute('visible', false);
+      text.setAttribute('visible', true);
+      
+      // Position text in front of camera
+      const camera = document.querySelector('a-camera');
+      const cameraWorldPos = new THREE.Vector3();
+      camera.object3D.getWorldPosition(cameraWorldPos);
+      
+      // Calculate direction from camera to marker
+      const markerWorldPos = new THREE.Vector3();
+      marker.object3D.getWorldPosition(markerWorldPos);
+      const direction = new THREE.Vector3();
+      direction.subVectors(markerWorldPos, cameraWorldPos).normalize();
+      
+      // Position text 5 meters in front of camera
+      const textPosition = new THREE.Vector3();
+      textPosition.copy(direction).multiplyScalar(5).add(cameraWorldPos);
+      
+      // Convert to local space relative to scene
+      eventEntity.setAttribute('position', textPosition);
+      eventEntity.removeAttribute('gps-entity-place');
+
+      // Show arrow and text
+      if (arrow && arrowText) {
+        arrow.setAttribute('visible', true);
+        arrowText.setAttribute('visible', true);
+      }
+    } else {
+      // Switch back to marker view
+      text.setAttribute('visible', false);
+      marker.setAttribute('visible', true);
+
+      // Recreate the entity to properly restore GPS position
+      const newEntity = eventEntity.cloneNode(true);
+      newEntity.setAttribute('gps-entity-place', {
+        latitude: eventEntity.originalGPS.latitude,
+        longitude: eventEntity.originalGPS.longitude
+      });
+      newEntity.removeAttribute('position');
+      
+      // Restore event listeners
+      const newMarker = newEntity.querySelector('.event-marker');
+      const newText = newEntity.querySelector('.event-text');
+      const handleClick = () => toggleEventDisplay(eventId);
+      newMarker.addEventListener('click', handleClick);
+      newText.addEventListener('click', handleClick);
+      
+      scene.removeChild(eventEntity);
+      scene.appendChild(newEntity);
+
+      // Hide arrow and text
+      if (arrow && arrowText) {
+        arrow.setAttribute('visible', false);
+        arrowText.setAttribute('visible', false);
+      }
+    }
+  }
 });
