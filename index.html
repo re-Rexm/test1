@@ -15,9 +15,6 @@
         margin: 0;
         overflow: hidden;
       }
-      a-scene {
-        touch-action: manipulation;
-      }
     </style>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
@@ -26,26 +23,24 @@
   <body>
     <a-scene
       vr-mode-ui="enabled: false"
-      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; maxDetectionRate: 30;"
-      renderer="antialias: true; alpha: true; precision: mediump;"
-      cursor="rayOrigin: mouse">
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="antialias: true; alpha: true;">
       
       <a-light type="ambient" color="#FFFFFF"></a-light>
       <a-light type="directional" color="#FFFFFF" intensity="0.5" position="-1 1 2"></a-light>
 
-      <a-camera id="cam" gps-camera rotation-reader>
+      <a-camera id="cam" gps-camera>
         <a-entity id="userPOV">
           <a-text
             distance-calc
             id="arrowTxt"
-            value="Look around for colored boxes\nTap to see event details"
+            value="Look around for events"
             width="2.5"
             align="center"
             color="white"
             position="0 -0.8 -1.5"
             visible="false">
           </a-text>
-
           <a-entity
             arrow-pointer
             id="arrow"
@@ -53,12 +48,7 @@
             position="0 -0.2 -0.5"
             visible="false">
             <a-triangle position="0 1.7 -3" color="yellow" depth="0.1">
-              <a-box
-                scale="0.2 0.8 0.4"
-                depth="0.1"
-                position="0 -0.89 0"
-                color="yellow">
-              </a-box>
+              <a-box scale="0.2 0.8 0.4" position="0 -0.89 0" color="yellow"></a-box>
             </a-triangle>
           </a-entity>
         </a-entity>
