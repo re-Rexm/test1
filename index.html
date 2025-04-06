@@ -1,87 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AR GPS Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Events</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <!-- Use this specific AR.js version for best compatibility -->
-    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
     <style>
+        .event-text {
+            background: rgba(0,0,0,0.7);
+            padding: 0.5em;
+            border-radius: 0.5em;
+            width: 15;
+            align: center;
+        }
+        body { margin: 0; overflow: hidden; }
         #status {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
             color: white;
             background: rgba(0,0,0,0.7);
             padding: 10px;
-            border-radius: 5px;
-            font-family: Arial;
             z-index: 10000;
         }
     </style>
 </head>
 <body>
-    <div id="status">Initializing...</div>
-    <a-scene 
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="logarithmicDepthBuffer: true; antialias: true;">
-        
-        <a-camera gps-camera rotation-reader></a-camera>
+    <div id="status">Initializing AR...</div>
+    <a-scene vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
+        <a-light type="ambient" color="#FFF"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.5" position="-1 1 2"></a-light>
+
+        <a-camera id="cam" gps-camera>
+            <a-entity id="pointer">
+                <a-entity id="arrow" arrow-pointer scale="0.07 0.07 0.07" position="0 -0.2 -0.5" visible="false">
+                    <a-triangle position="0 1.7 -3" color="yellow" depth="0.1">
+                        <a-box scale="0.2 0.8 0.4" position="0 -0.89 0" color="yellow"></a-box>
+                    </a-triangle>
+                </a-entity>
+                <a-text id="distanceText" value="Distance: 0m" width="2" align="center" 
+                       color="white" position="0 -0.8 -1.5" visible="false"></a-text>
+            </a-entity>
+        </a-camera>
     </a-scene>
 
-    <script>
-        const status = document.getElementById('status');
-        const scene = document.querySelector('a-scene');
-        
-        // Debugging function
-        function updateStatus(message) {
-            status.textContent = message;
-            console.log(message);
-        }
-
-        scene.addEventListener('loaded', () => {
-            updateStatus("Scene loaded, waiting for GPS...");
-            
-            const camera = document.querySelector('a-camera');
-            if (!camera) {
-                updateStatus("Error: Camera not found");
-                return;
-            }
-
-            let gpsRetries = 0;
-            const maxRetries = 20; // 10 seconds total (500ms * 20)
-
-            function checkGPS() {
-                gpsRetries++;
-                const pos = camera.getAttribute('gps-camera');
-                
-                if (pos && pos.latitude) {
-                    updateStatus(`GPS locked! Your position: ${pos.latitude}, ${pos.longitude}`);
-                    placeTestBox(pos.latitude, pos.longitude);
-                } else if (gpsRetries < maxRetries) {
-                    updateStatus(`Waiting for GPS... (Attempt ${gpsRetries}/${maxRetries})`);
-                    setTimeout(checkGPS, 500);
-                } else {
-                    updateStatus("Failed to get GPS. Ensure location is enabled and you're outdoors.");
-                }
-            }
-
-            function placeTestBox(lat, lng) {
-                const box = document.createElement('a-box');
-                box.setAttribute('material', 'color: red');
-                box.setAttribute('scale', '5 5 5');
-                box.setAttribute('gps-entity-place', {
-                    latitude: lat + 0.0002, // ~20m north
-                    longitude: lng
-                });
-                scene.appendChild(box);
-                updateStatus("Red box placed 20m north of you!");
-            }
-
-            // Start GPS check
-            checkGPS();
-        });
-    </script>
+    <script src="./event.js"></script>
+    <script src="./arrow.js"></script>
+    <script src="./distance.js"></script>
 </body>
 </html>
