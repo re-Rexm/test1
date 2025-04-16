@@ -10,8 +10,8 @@ AFRAME.registerComponent('clickable', {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  const baseLat = 39.786495;
-  const baseLng = -84.068553;
+  const baseLat = 39.779388;
+  const baseLng = -84.063194;
   const offset = 0.0002;
 
   const events = [
