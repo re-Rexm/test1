@@ -16,14 +16,16 @@
     ></script>
 
     <!-- Custom Scripts and Modules -->
+    
     <script type="module" src="./src/firebase.js" defer></script>
     <script type="module" src="./src/fetch-event.js"></script>
-    <script src="./src/interact.js"></script>
-    <script type="module" src="./src/event.js"></script>
-    <script src="./src/event-rotate.js"></script>
-    <script src="./src/arrow.js"></script>
+    
     <script src="./src/distance.js"></script>
-
+    
+    <script src="./src/arrow.js"></script>
+    <script src="./src/interact.js"></script>
+    <script src="./src/event-rotate.js"></script>
+    <script type="module" src="./src/event.js"></script>
     <!-- Test Scripts -->
     <!-- <script type="module" src="./src/test-event.js"></script> -->
 
@@ -47,12 +49,12 @@
         >
         </a-entity>
 
-        <!--Arrow Entity will point to Event entity -->
+        <!--Arrow Entity will point to selected or closest event -->
         <a-entity id="userPOV">
           <a-text
-            distance-calc
+            distance-calc="mode: selected; distanceType: euclidean"
             id="arrowTxt"
-            value="Your event is this way."
+            value="Select an event to navigate."
             width="2"
             align="center"
             color="white"
@@ -61,7 +63,7 @@
           </a-text>
 
           <a-entity
-            arrow-pointer
+            arrow-pointer="mode: selected"
             id="arrow"
             scale=".07 .07 .07"
             position="0 -.2 -.5"
@@ -81,15 +83,15 @@
         </a-entity>
 
         <!-- Display Window Entity -->
-        <a-entity id="displayWindow" toggle-entity position=".036 0 -.1">
-          <a-plane id="display outline" scale=".05 .05 .05" color="yellow">
+        <a-entity id="displayWindow" position=".036 0 -.1">
+          <a-plane id="display-outline" scale=".05 .05 .05" color="yellow">
           </a-plane>
 
           <a-plane id="display-inline" scale=".045 .045 .045" color="#0f4015">
             <!-- Display Window info text -->
             <a-text
               id="display-info-text"
-              value="Name: \nPlace: \nLocation:"
+              value="Select an event to view details"
               color="white"
               scale=".2 .2 .2"
               align="center"
@@ -99,17 +101,6 @@
           </a-plane>
         </a-entity>
       </a-camera>
-
-      <!-- Event Entity -->
-      <a-entity
-        class="clickable"
-        click-display-info
-        rotation-tick
-        id="event"
-        geometry="primitive: box"
-        material="color: blue"
-      >
-      </a-entity>
     </a-scene>
   </body>
 </html>
